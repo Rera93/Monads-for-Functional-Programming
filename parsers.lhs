@@ -52,3 +52,7 @@ hasLiteral recognizes a single specified character
 > hasDigit :: M Int  
 > hasDigit  = (item ▷ isDigit) ⨠ \a -> unit (ord a - ord '0')
 
+A parser can be iterated, yielding a lit of parsed values
+
+> iteration    :: M a -> M [a]
+> iteration m   = (m ⨠ \a -> iteration m ⨠ \x -> unit (a : x)) ⊕ unit [] 
