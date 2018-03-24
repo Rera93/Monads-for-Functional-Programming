@@ -1,4 +1,7 @@
- {-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE UnicodeSyntax #-}
+
+> import Data.Char
+> import Data.Ord
 
 > type M a = State -> [(a, State)]
 > type State = String 
@@ -42,4 +45,10 @@ hasLiteral recognizes a single specified character
 
 > hasLiteral   :: Char -> M Char 
 > hasLiteral c  = item ▷ (\a -> a == c)  
+
+> hasLetter :: M Char 
+> hasLetter  = item ▷ isLetter 
+
+> hasDigit :: M Int  
+> hasDigit  = (item ▷ isDigit) ⨠ \a -> unit (ord a - ord '0')
 
