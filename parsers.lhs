@@ -55,4 +55,12 @@ hasLiteral recognizes a single specified character
 A parser can be iterated, yielding a lit of parsed values
 
 > iteration    :: M a -> M [a]
-> iteration m   = (m ⨠ \a -> iteration m ⨠ \x -> unit (a : x)) ⊕ unit [] 
+> iteration m   = (m ⨠ \a -> iteration m ⨠ \x -> unit (a : x)) ⊕ unit []
+
+Biased choice 
+
+> (⦸)        :: (Eq a) => M a -> M a -> M a 
+> (m ⦸ n) x   = if m x /= [] then m x else n x  
+
+> reiteration   :: (Eq a) => M a -> M [a]
+> reiteration m  = (m ⨠ \a -> reiteration m ⨠ \x -> unit (a : x)) ⦸ unit []
