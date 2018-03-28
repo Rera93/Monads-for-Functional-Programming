@@ -1,0 +1,108 @@
+
+\documentclass{article}
+\usepackage{blindtext}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[document]{ragged2e}
+
+
+\title{Monads: Straightforward Introduction}
+\author{Brigel Pineti}
+\date{\today}
+  \begin{document}
+   \maketitle
+   
+   
+  
+  \section*{A monadic evaluator}
+  
+  \begin{center}
+      \textbf{type} \textit{M a} = \textit{State $\rightarrow$ (a, State)}
+   \end{center}
+   
+   In the above example M stands for \textit{monad}. What sort of operations are required on type M? \\ 
+   Firstly, we need a way to turn a value of type \textit{a} into a \textit{monadic value} of the same type by putting it in a special context. 
+  
+   \begin{center}
+      \textit{unit} :: a $\rightarrow$ M a
+   \end{center}
+   
+   Secondly, we need a way to apply a function of type \textit{a $\rightarrow$ M b} to a computation of type \textit{M a}.
+  
+  \begin{center}
+      $>>=$ :: \textit{M a $\rightarrow$ (a $\rightarrow$ M b) $\rightarrow$ M b}
+   \end{center} 
+   
+   Expressions of the form 
+   
+   \begin{center}
+   \textit{m $>>=$ $\lambda$a $\rightarrow$ n} 
+   \end{center}
+   
+   where \textit{m} and \textit{n} are expressions and a is a variable will be frequently observed from now on. The form \textit{$\lambda$a $\rightarrow$ n} is a lambda expression, taking the variable \textit{a} as input and returning an expression \textit{n}. The above operation can be read as follows: perform computation \textit{m}, bind \textit{a} to the resulting value, and then perform computation \textit{n}. Types provide a useful guide. From the type of ($>>=$), we can see that the expression \textit{m} has type \textit{M a}, variable \textit{a} has type \textit{a}, expression \textit{n} has type \textit{M b}, lambda expression \textit{\lambda a $\rightarrow$ n} has type \textit{a $\rightarrow$ M b} and the whole expression has type \textit{M b}.  
+   
+   \vspace{5mm}
+   
+   \textbf{Note:} A default \textit{monad} is a triple (M, unit, $>>=$) consisting of a type constructor M and two operations of the given polymorphic types. Additional operations may be added as long as they satisfy the three monadic laws (left identity, right identity and associativity).
+   
+   \section*{Parsing an item}
+   
+   \begin{center}
+       \textbf{type} \textit{M a} = State $\rightarrow$ [(a, State)] \\
+       \textbf{type} \textit{State} = \textit{String}
+   \end{center}
+   
+   The parser of type \textit{a} takes a state representing a string to be parsed and returns a list of containing the value of type \textit{a} parsed from the string, and a state representing the remaining string yet to be parsed.  
+   
+   The \textbf{list} being a \textit{monad} itself, represents all the alternative possible parses of the input state: it will be empty if there is no parse, have one element if there is one parse, have two elements if there are two different possible parses, and so on.
+   
+   \begin{center}
+    \textit{item}    :: \textit{M Char} \\
+    \textit{item} [ ] = [ ] \\
+    \textit{item} (a : x) = [(a, x)]
+   \end{center}
+   
+   The basic parser returns the first item of the input, and fails if the input is exhausted. Here are two practical examples: 
+   
+   \begin{center}
+       \textit{item} ``" = [ ] \\
+       \textit{item} ``monad" = [(`m', ``onad")]
+   \end{center}
+   
+   \section*{Sequencing}
+   
+   To transform parsers into monads, we require operations like \textit{unit} and $>>=$.
+   
+   \begin{center}
+       \textit{unit} :: \textit{a} $\rightarrow$ \textit{M a} \\
+       \textit{unit a x} = [(\textit{a}, \textit{x})] \\
+   \end{center}
+   
+   \begin{center}
+       ($>>=$) :: \textit{M a} $\rightarrow$ (\textit{a} $\rightarrow$ \textit{M b}) $\rightarrow$ \textit{M b} \\
+       (\textit{m} $>>=$ \textit{k}) \textit{x} = [(\textit{b,z}) $|$ (\textit{a,y}) $\leftarrow$ \textit{m x}, (\textit{b, z}) $\leftarrow$ \textit{k a y}]
+   \end{center}
+   
+   The parser \textit{unit a} accepts input \textit{x} and yields one parse with value \textit{a} paired with the remaining input \textit{x}. 
+   The parse \textit{m} $>>=$ \textit{k} takes input \textit{x}; parser \textit{m} is applied to input \textit{x} yielding for each parse a value \textit{a} paired with the remaining input \textit{y}; then parser \textit{k a} is applied to input \textit{y}, yielding for each parse a value \textit{b} paired with the final remaining output \textit{z}. 
+   The \textit{unit} corresponds to the empty parser, which consumes no input whereas \textit{$>>=$} corresponds to sequencing of parsers. 
+   Therefore, two items may be parsed as follows: 
+   
+   \begin{center}
+       \textit{twoItems} :: \textit{M}(\textit{Char}, \textit{Char}) \\
+       \textit{twoItems} = \textit{item} $>>=$ $\lambda$a $\rightarrow$ \textit{item} $>>=$ $\lambda$\textit{b} $\rightarrow$ \textit{unit} (\textit{a}, \textit{b})
+
+   \end{center}
+   
+   Here are two practical examples:
+   
+   \begin{center}
+       \textit{twoItems} ``\textit{m}" = [ ] \\
+       \textit{twoItems} ``\textit{monad}" = [((`\textit{m}', `\textit{o}'), ``\textit{nad}")]
+   \end{center}
+   
+     
+     
+  \end{document}
+  
