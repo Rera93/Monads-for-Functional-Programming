@@ -10,6 +10,16 @@
 
 > type Name = String 
 
+> type Behavior = [Response] -> [Request]
+> type FailCont = IOError    -> Behavior
+> type StrCont  = String     -> Behavior
+
+> readFile :: Name -> FailCont -> StrCont -> Behavior
+> readFile name fail succ ~(resp:resps) = ReadFile name : 
+>                                          case resp of 
+>                                            Str val     -> succ val resps 
+>                                            Failure msg -> fail msg resps                  
+
 
             
     
