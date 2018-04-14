@@ -1,5 +1,4 @@
 > import Data.Char
-
 > data Token = TokOp Operator | TokIdent String | TokNum Int deriving (Show, Eq)
 
 > data Operator = Plus | Minus | Times | Div deriving (Show, Eq)
