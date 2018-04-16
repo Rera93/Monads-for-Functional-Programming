@@ -6,7 +6,7 @@
 \usepackage[a4paper,left=3cm,right=3cm,top=4cm,bottom=4cm]{geometry}
 
 \title{\Large{Research Seminar Software Science} \\
-\huge{Monads}}
+\huge{Simulation of monadic effects in Haskell}}
 \author{Brigel Pineti}
 \date{April 2018}
 
@@ -14,18 +14,20 @@
 
 \maketitle
 
+\section*{Abstract}
+
 \section{Introduction}
 
-The code snippets presented in this paper are implemented with Haskell. 
+Pure function languages like Haskell rule out side effects. Why? Firstly, to allow unrestricted application of program transformation and equation logic. Secondly, being a non-strict language, Haskell's order of side effects is undefined. The aim of this paper is to show how monads can be used to exploit impure effects into a pure language. The code snippets attached to this paper are implemented in Haskell. Section 2 will provide an overview on the characteristics of the language being used. Section 3 is using the Maybe Monad as an illustrative example to get the reader's feet wet with the complex concept of a Monadic value. The application of monads is demonstrated with three case studies.
 
 \section{Haskell}
 
-In this section are reflected two main features concerning the above mentioned functional language. Taking into consideration that not every reader might be familiar with the language, I found it necessary to briefly illustrate the laziness and purity of Haskell.  
+In this section are reflected two main features concerning the above mentioned functional language. Taking into consideration that not every reader might be familiar with the properties of the language, I found it necessary to briefly illustrate the laziness and purity of Haskell.  
 
 \subsection{Lazy Evaluation}
 
 Haskell is a functional language with non-strict semantics. What does this mean? An expression is evaluated from the outside in. For instance, the evaluation of \textit{$(a + (b * c))$} will firstly reduce the \textit{$+$} operator and then the inner bracket \textit{$(a * b)$}. \\
-Lazy evaluation is just an implementation approach for a non-strict language. An appropriate definition for laziness can be represented by the term \textit{call-by-need}. Consequently, the evaluation of an expression is delayed until its result is actually needed from another computation. Therefore, the parameters of a function are evaluated only when they are needed and not a moment before. 
+Lazy evaluation is just an implementation approach for a non-strict language. An appropriate definition for laziness can be represented by the term \textit{call-by-need}. Consequently, the evaluation of an expression is delayed until its result is actually needed from another computation. Therefore, the parameters of a function are evaluated only when they are needed and not a moment before. An advantage of laziness 
 
 \subsection{Absence of Side Effects}
 
