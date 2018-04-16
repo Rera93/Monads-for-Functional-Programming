@@ -3,7 +3,7 @@
 \usepackage{blindtext}
 \usepackage{cite}
 \usepackage{comment}
-\usepackage[a4paper,left=2cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[a4paper,left=3cm,right=3cm,top=4cm,bottom=4cm]{geometry}
 
 \title{\Large{Research Seminar Software Science} \\
 \huge{Monads}}
@@ -26,4 +26,8 @@ In this section are reflected two main features concerning the above mentioned f
 
 Haskell is a functional language with non-strict semantics. What does this mean? An expression is evaluated from the outside in. For instance, the evaluation of \textit{$(a + (b * c))$} will firstly reduce the \textit{$+$} operator and then the inner bracket \textit{$(a * b)$}. \\
 Lazy evaluation is just an implementation approach for a non-strict language. An appropriate definition for laziness can be represented by the term \textit{call-by-need}. Consequently, the evaluation of an expression is delayed until its result is actually needed from another computation. Therefore, the parameters of a function are evaluated only when they are needed and not a moment before. 
+
+\subsection{Absence of Side Effects}
+
+A straightforward consequence of laziness is the evaluation order of a Haskell program. Being demand-driven, it becomes impossible for a function call to produce any side effects. Therefore, Haskell is considered to be a \textit{pure language}. For example, a function of type $Char \rightarrow Char$ will neither write nor read any mutable variables. Nevertheless, side effects are without any doubt very convenient. Haskell's restricted side effects resulted in a sluggish input/output. For this reason, monadic I/O was created; thus by leading to a functional language with side effects. 
 \end{document}
