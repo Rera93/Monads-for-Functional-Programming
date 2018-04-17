@@ -32,4 +32,18 @@ Lazy evaluation is just an implementation approach for a non-strict language. An
 \subsection{Absence of Side Effects}
 
 A straightforward consequence of laziness is the evaluation order of a Haskell program. Being demand-driven, it becomes impossible for a function call to produce any side effects. Therefore, Haskell is considered to be a \textit{pure language}. For example, a function of type $Char \rightarrow Char$ will neither write nor read any mutable variables. Nevertheless, side effects are without any doubt very convenient. Haskell's restricted side effects resulted in a sluggish input/output. For this reason, monadic I/O was created; thus by leading to a functional language with side effects. 
+\section{Monads}
+
+There exists a certain complexity when it comes to grasping to concept of a monad. From history, monads were initially adopted in Haskell to produce input and output operations. However, the capabilities of monads were not bound to just I/O. Additionally, monads can support multiple operations such as state, non-determinism, continuations, exceptions etc. \\ \\ 
+The default monad is defined by three components: 
+\begin{itemize}
+    \item a type constructor
+    \item a function return
+    \item a bind operator ($\gg$=)
+\end{itemize}
+
+
+
+
+
 \end{document}
