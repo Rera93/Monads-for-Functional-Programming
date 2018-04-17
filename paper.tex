@@ -35,15 +35,21 @@ A straightforward consequence of laziness is the evaluation order of a Haskell p
 \section{Monads}
 
 There exists a certain complexity when it comes to grasping to concept of a monad. From history, monads were initially adopted in Haskell to produce input and output operations. However, the capabilities of monads were not bound to just I/O. Additionally, monads can support multiple operations such as state, non-determinism, continuations, exceptions etc. \\ \\ 
-The default monad is defined by three components: 
+The default monad is composed by three esential components: 
 \begin{itemize}
     \item a type constructor
     \item a function return
     \item a bind operator ($\gg$=)
 \end{itemize}
+The \textit{return} function and the bind operator ($\gg$=) have the following types: 
 
+\begin{center}
+   return   :: a $\rightarrow$ m a \\
+   ($\gg$=) :: m a $\rightarrow$ (a $\rightarrow$ m b) $\rightarrow$ m b 
+   \end{center}
+In order for the above function definitions to hold, the three monadic laws need to be satisfied.
 
-
+The Maybe monad has been selected to provide a concrete insight on how a monad functions.   
 
 
 \end{document}
