@@ -1,8 +1,9 @@
-\documentclass[a4paper, twocolumn]{article}
+\documentclass[a4paper, onecolumn]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{blindtext}
 \usepackage{cite}
 \usepackage{comment}
+\usepackage{color}
 \usepackage[a4paper,left=3cm,right=3cm,top=4cm,bottom=4cm]{geometry}
 
 \title{\Large{Research Seminar Software Science} \\
@@ -33,9 +34,9 @@ Lazy evaluation is just an implementation approach for a non-strict language. An
 
 A straightforward consequence of laziness is the evaluation order of a Haskell program. Being demand-driven, it becomes impossible for a function call to produce any side effects. Therefore, Haskell is considered to be a \textit{pure language}. For example, a function of type $Char \rightarrow Char$ will neither write nor read any mutable variables. Nevertheless, side effects are without any doubt very convenient. Haskell's restricted side effects resulted in a sluggish input/output. For this reason, monadic I/O was created; thus by leading to a functional language with side effects. 
 \section{Monads}
-
-There exists a certain complexity when it comes to grasping to concept of a monad. From history, monads were initially adopted in Haskell to produce input and output operations. However, the capabilities of monads were not bound to just I/O. Additionally, monads can support multiple operations such as state, non-determinism, continuations, exceptions etc. \\ \\ 
-The default monad is composed by three esential components: 
+Monads originate from a section of mathematics called category theory. Luckily for us, it is not required to have prior knowledge in category theory in order to comprehend the application of monads in Haskell. 
+Nevertheless, there exists a certain complexity when it comes to grasping to concept of a monad. From history, monads were initially adopted in Haskell to produce input and output operations. However, the capabilities of monads were not bound to just I/O. Additionally, monads can support multiple operations such as state, non-determinism, continuations, exceptions etc. \\ \\ 
+The default monad is composed by three essential components: 
 \begin{itemize}
     \item a type constructor
     \item a function return
@@ -47,8 +48,14 @@ The \textit{return} function and the bind operator ($\gg$=) have the following t
    return   :: a $\rightarrow$ m a \\
    ($\gg$=) :: m a $\rightarrow$ (a $\rightarrow$ m b) $\rightarrow$ m b 
    \end{center}
-In order for the above function definitions to hold, the three monadic laws need to be satisfied.
+In order for the above function definitions to hold, the monad laws need to be satisfied. There exist three monadic laws: 
 
+\begin{itemize}
+    \item right unit \hspace{20mm} m $\gg$= return \textcolor{red}{=} m 
+    \item left unit \hspace{20mm} return x $\gg$= f \textcolor{red}{=} f x   
+    \item associative \hspace{15mm} (m $\gg$= f) $\gg$= g \textcolor{red}{=} m $\gg$= (\textbackslash x $\rightarrow$ f x $\gg$= g) 
+\end{itemize}
+According to the laws of right and left unit, the return serves as a collector of a value where no computation occurs. As the type of \textit{return} suggests, it takes a value of type \textit{a}, puts it in a special context \textit{m} and returns as a result \textit{m a}.
 The Maybe monad has been selected to provide a concrete insight on how a monad functions.   
 
 
