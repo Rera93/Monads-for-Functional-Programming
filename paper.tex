@@ -4,6 +4,7 @@
 \usepackage{cite}
 \usepackage{comment}
 \usepackage{color}
+\usepackage{listings}
 \usepackage[a4paper,left=3cm,right=3cm,top=4cm,bottom=4cm]{geometry}
 
 \title{\Large{Research Seminar Software Science} \\
@@ -88,10 +89,25 @@ It is crucial to understand that there exist more than one kind of monad. As a r
         \textbf{type} Parser \textit{a} = String $\rightarrow$ [(\textit{a}, String)] 
     \end{center}
 \end{itemize}
-Each one of the above mentioned definitions needs to comply with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} (Wadler, 1992).
+Each of the above mentioned definitions needs to comply with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} (Wadler, 1992).
 
 \subsection{Maybe}
-The Maybe monad has been selected to provide a concrete insight on how a monad works in practice.   
+The Maybe monad has been selected to provide a concrete insight on how a monad works in practice. The type constructor is Maybe:
 
+\begin{center}
+    \textbf{data} Maybe \textit{a} = Just \textit{a} $\vert$ Nothing 
+\end{center}
+The \textit{return} and ($\gg$=) are defined like this:
 
+\begin{lstlisting}[language=Haskell]
+    return :: a -> Maybe a
+    return x = Just x 
+\end{lstlisting}
+
+\begin{lstlisting}[language=Haskell]
+    (>>=) :: Maybe a -> (\a -> Maybe b) -> Maybe b
+    m >>= f = case m of 
+    Nothing -> Nothing
+    Just x -> f x
+\end{lstlisting}
 \end{document}
