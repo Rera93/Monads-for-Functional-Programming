@@ -64,6 +64,9 @@ It is crucial to understand that there exist more than one kind of monad. As a r
 
 \begin{itemize}
     \item \textbf{Fail Monad} - Consider the case that each step will \textit{return} either a success or a fail. The bind operator can be constructed in such a way that the next step will be executed only if the former step succeeds. Hence, there is no need to check if the previous step failed since the \textit{fail monad} will take care of this by automatically aborting in case of a former failing step.
+    \begin{center}
+        \textbf{data} Failure \textit{a} = Fail $\vert$ Success \textit{a} 
+    \end{center}
     \item \textbf{Exception Monad} - Either returns a values or raises an exception. Since it is up to the developer to implement such a monad, he/she may decide to ignore the first exception and throw an exception only if a second one is found. 
     \begin{center}
         \textbf{data} Exc \textit{e a} = Exception \textit{e} $\vert$ OK \textit{a}
@@ -72,10 +75,23 @@ It is crucial to understand that there exist more than one kind of monad. As a r
     \begin{center}
         \textbf{type} List \textit{a} = [\textit{a}]
     \end{center}
+    \item \textbf{State Reader Monad} - Accepts a state as an input and reads a value of type \textit{a} without performing any computation on the state itself. The bind operator can be used to pass additional data with the sole purpose to access it from anywhere without the necessity to manually pass to every step in order to read it. 
+    \begin{center}
+        \textbf{type} SR \textit{s a} = \textit{s} $\rightarrow$ \textit{a}
+    \end{center}
+    \item \textbf{State Transformer Monad} - Mainly used to thread the state during program execution. The transformer takes the old state as an input and returns a tuple of the value of type \textit{a} and the new state. Additionally, the state transformer is perfect for simulating update operations.
+    \begin{center}
+        \textbf{type} ST \textit{s a} = \textit{s} $\rightarrow$ (\textit{a}, \textit{s})
+    \end{center}
+    \item \textbf{Parser Monad} - Extremely helpful in modeling parsers. The input is a String to be parsed and the output is a list containing the parsed value of type \textit{a} and the remaining unparsed String. The list represents all the possible parses of the input String; being empty if nothing is parsed, having only one parse if there is one parse and so on. The parser monad is equivalent to the combination between the list monad and the state transformer monad.  
+    \begin{center}
+        \textbf{type} Parser \textit{a} = String $\rightarrow$ [(\textit{a}, String)] 
+    \end{center}
 \end{itemize}
+Each one of the above mentioned definitions needs to comply with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} (Wadler, 1992).
 
 \subsection{Maybe}
-The Maybe monad has been selected to provide a concrete insight on how a monad functions.   
+The Maybe monad has been selected to provide a concrete insight on how a monad works in practice.   
 
 
 \end{document}
