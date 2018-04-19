@@ -5,6 +5,7 @@
 \usepackage{comment}
 \usepackage{color}
 \usepackage{listings}
+\usepackage{tcolorbox}
 \usepackage[a4paper,left=3cm,right=3cm,top=4cm,bottom=4cm]{geometry}
 
 \title{\Large{Research Seminar Software Science} \\
@@ -46,18 +47,21 @@ In order to have a monad, three components are essential to its construction:
     \item a bind operator ($\gg$=)
 \end{itemize}
 The \textit{return} function and the bind operator ($\gg$=) have the following types: 
-
-\begin{center}
-   return   :: a $\rightarrow$ M a \\
-   ($\gg$=) :: M a $\rightarrow$ (a $\rightarrow$ M b) $\rightarrow$ M b 
-   \end{center}
+\begin{tcolorbox}
+  \begin{lstlisting}[language=Haskell]
+   return :: a -> M a 
+   (>>=)  :: M a -> (a -> M b) -> M b 
+  \end{lstlisting}
+\end{tcolorbox}
 In order for the above function definitions to hold, the monad laws need to be satisfied. There exist three monadic laws as presented below: 
+\begin{tcolorbox}
+  \begin{lstlisting}[language=Haskell]
+right unit             m >>= return  =  m 
+left  unit      return x >>= f       =  f x   
+associative    (m >>= f) >>= g       =  m >>= (\x -> f x >>= g) 
+  \end{lstlisting}
+\end{tcolorbox}
 
-\begin{itemize}
-    \item right unit \hspace{20mm} m $\gg$= return \textcolor{red}{=} m 
-    \item left unit \hspace{20mm} return x $\gg$= f \textcolor{red}{=} f x   
-    \item associative \hspace{15mm} (m $\gg$= f) $\gg$= g \textcolor{red}{=} m $\gg$= (\textbackslash x $\rightarrow$ f x $\gg$= g) 
-\end{itemize}
 According to the laws of right and left unit, the return serves as a collector of a value where no computation occurs. As the type of \textit{return} suggests, it takes a value of type \textit{a}, puts it in a special context \textit{m} and returns as a result \textit{m a}. Furthermore, the associative law guarantees that the bind operator ($\gg$=) is concerned only with the order of computation and not the manner they are nested together. The bind operation can be compared to a semicolon(;) by taking the output from the former step and feeding it to the next step.
 \subsection{Flavors}
 
@@ -89,25 +93,49 @@ It is crucial to understand that there exist more than one kind of monad. As a r
         \textbf{type} Parser \textit{a} = String $\rightarrow$ [(\textit{a}, String)] 
     \end{center}
 \end{itemize}
-Each of the above mentioned definitions needs to comply with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} (Wadler, 1992).
+It is thought-provoking how any type can act as a \textit{Monad} just by defining some functions that complies with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} (Wadler, 1992).
 
 \subsection{Maybe}
-The Maybe monad has been selected to provide a concrete insight on how a monad works in practice. The type constructor is Maybe:
+The Maybe monad has been selected to provide a concrete insight on how a monad works in practice. The nature of Maybe provides a smooth solution to situations where some function may or may not return a value. The type constructor is Maybe as presented below:
 
 \begin{center}
     \textbf{data} Maybe \textit{a} = Just \textit{a} $\vert$ Nothing 
 \end{center}
-The \textit{return} and ($\gg$=) are defined like this:
-
+The type constructor Maybe suggests that for any value of type \textit{a}, it returns either \textit{Just} that value or \textit{Nothing}. The \textit{return} and ($\gg$=) are defined like this:
+\begin{tcolorbox}
 \begin{lstlisting}[language=Haskell]
     return :: a -> Maybe a
-    return x = Just x 
+    return x     = Just x 
 \end{lstlisting}
+\end{tcolorbox}
+The \textbf{return} will take an an input a normal value and place it inside the context of a Maybe value. In the this case, it placed it inside the \textbf{Just} value constructor. For example: 
 
+\begin{center}
+    ghci$>$ \textbf{return} \textit{``hello"}
+\end{center}
+The resulting value of the above operation will be \textbf{Just} \textit{``hello"}.
+\begin{tcolorbox}
 \begin{lstlisting}[language=Haskell]
     (>>=) :: Maybe a -> (\a -> Maybe b) -> Maybe b
-    m >>= f = case m of 
-    Nothing -> Nothing
-    Just x -> f x
+    Nothing >>= f = Nothing
+    Just x  >>= f = f x
 \end{lstlisting}
+\end{tcolorbox}
+The binding operator ($\gg$=) takes \textbf{Maybe a} and a function of type \textbf{a $\rightarrow$ Maybe b} and somehow applies the function to \textbf{Maybe a} in order to return \textbf{Maybe b}. An example might be useful to illustrate this: 
+\begin{center}
+ghci$>$ \textbf{Just} \textit{``smile"} $\gg=$ \textbackslash x $\rightarrow$ \textbf{Just} (\textit{x} ++ \textit{`` :)"})
+\end{center}
+When the function is applied to \textbf{Just ``smile"}, it removes \textbf{``smile"} from its special context and passes it as an input to the function \textbf{\textbackslash x $\rightarrow$ Just (x ++ `` :)")}.  The function will return \textbf{Just ``smile :)"}. This is what I call magic! On the other hand, replacing \textbf{Just ``smile"} with the value constructor \textbf{Nothing} will always result in \textbf{Nothing} being independent from the function \textbf{f}.
+
+
+\subsection{Conclusions}
+A monad is helpful in chaining various computations together and managing how that chain of action functions as a unit. In addition, the monadic laws will be in charge of supervising two imperative cases:
+
+\begin{itemize}
+    \item state between actions by guaranteeing that they are executed in the appropriate order 
+    \item failing situations by ensuring that upcoming actions are aborted and the whole expression is evaluated to a failure
+\end{itemize}
+Therefore, it is essential to understand how the Maybe types work as a Monad in order to then comprehend more complicated Monads like \textit{State} and \textit{IO}.
+
+
 \end{document}
