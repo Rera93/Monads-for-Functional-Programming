@@ -1,155 +1,210 @@
 \documentclass[a4paper, onecolumn]{article}
-\usepackage[utf8]{inputenc}
-\usepackage{blindtext}
-\usepackage{cite}
-\usepackage{comment}
-\usepackage{color}
-\usepackage{listings}
-\usepackage{tcolorbox}
-\usepackage[a4paper,left=3cm,right=3cm,top=4cm,bottom=4cm]{geometry}
-
-\title{\Large{Research Seminar Software Science} \\
-\huge{Simulation of monadic effects in Haskell}}
-\author{Brigel Pineti}
-\date{April 2018}
-
-\begin{document}
-
-\maketitle
-
-\section*{Abstract}
-
-TODO: Write once the paper is coming to an end!
-
-\section{Introduction}
-
-Pure function languages like Haskell rule out side effects. Why? Firstly, to allow unrestricted application of program transformation and equation logic. Secondly, being a non-strict language, Haskell's order of side effects is undefined. The aim of this paper is to show how monads can be used to exploit impure effects into a pure language. The code snippets attached to this paper are implemented in Haskell. Section 2 will provide an overview on the characteristics of the language being used. Section 3 describes the construction of a monad, the various monadic flavors and the Maybe Monad as an illustrative example to get the reader's feet wet with the complex concept of a Monadic value. The application of monads is demonstrated with three case studies.
-
-\section{Haskell}
-
-In this section are reflected two main features concerning the above mentioned functional language. Taking into consideration that not every reader might be familiar with the properties of the language, I found it necessary to briefly illustrate the laziness and purity of Haskell.  
-
-\subsection{Lazy Evaluation}
-
-Haskell is a functional language with non-strict semantics. What does this mean? An expression is evaluated from the outside in. For instance, the evaluation of \textit{$(a + (b * c))$} will firstly reduce the \textit{$+$} operator and then the inner bracket \textit{$(a * b)$}. \\
-Lazy evaluation is just an implementation approach for a non-strict language. An appropriate definition for laziness can be represented by the term \textit{call-by-need}. Consequently, the evaluation of an expression is delayed until its result is actually needed from another computation. Therefore, the parameters of a function are evaluated only when they are needed and not a moment before.
-
-\subsection{Absence of Side Effects}
-
-A straightforward consequence of laziness is the evaluation order of a Haskell program. Being demand-driven, it becomes impossible for a function call to produce any side effects. Therefore, Haskell is considered to be a \textit{pure language}. For example, a function of type $Char \rightarrow Char$ will neither write nor read any mutable variables. Nevertheless, side effects are without any doubt very convenient. Haskell's restricted side effects resulted in a sluggish input/output. For this reason, monadic I/O was created; thus by leading to a functional language with side effects. 
-\section{Monads}
-Monads originate from a section of mathematics called category theory \cite{categorytheory}. Luckily for us, it is not required to have prior knowledge in category theory in order to comprehend the application of monads in Haskell. 
-Nevertheless, there exists a certain complexity when it comes to grasping to concept of a monad. From history, monads were initially adopted in Haskell to produce input and output operations. However, the capabilities of monads were not bound to just I/O. Additionally, monads can support multiple operations such as state, non-determinism, continuations, exceptions etc.
-\subsection{Construction}
-For now think of a monad as a way of chaining operations together. 
-In order to have a monad, three components are essential to its construction: 
-\begin{itemize}
-    \item a type constructor
-    \item a function return
-    \item a bind operator ($\gg$=)
-\end{itemize}
-The \textit{return} function and the bind operator ($\gg$=) have the following types: 
-\begin{tcolorbox}
-  \begin{lstlisting}[language=Haskell]
-   return :: a -> M a 
-   (>>=)  :: M a -> (a -> M b) -> M b 
-  \end{lstlisting}
-\end{tcolorbox}
-In order for the above function definitions to hold, the monad laws need to be satisfied. There exist three monadic laws as presented below: 
-\begin{tcolorbox}
-  \begin{lstlisting}[language=Haskell]
-right unit             m >>= return  =  m 
-left  unit      return x >>= f       =  f x   
-associative    (m >>= f) >>= g       =  m >>= (\x -> f x >>= g) 
-  \end{lstlisting}
-\end{tcolorbox}
-
-According to the laws of right and left unit, the return serves as a collector of a value where no computation occurs. As the type of \textit{return} suggests, it takes a value of type \textit{a}, puts it in a special context \textit{m} and returns as a result \textit{m a}. Furthermore, the associative law guarantees that the bind operator ($\gg$=) is concerned only with the order of computation and not the manner they are nested together. The bind operation can be compared to a semicolon(;) by taking the output from the former step and feeding it to the next step.
-\subsection{Flavors}
-
-It is crucial to understand that there exist more than one kind of monad. As a result, the implementation of the bind function ($\gg$=) mentioned on the previous section differs on various monads. 
-
-\begin{itemize}
-    \item \textbf{Fail Monad} - Consider the case that each step will \textit{return} either a success or a fail. The bind operator can be constructed in such a way that the next step will be executed only if the former step succeeds. Hence, there is no need to check if the previous step failed since the \textit{fail monad} will take care of this by automatically aborting in case of a former failing step.
+    \usepackage[utf8]{inputenc}
+    \usepackage{blindtext}
+    \usepackage{cite}
+    \usepackage{comment}
+    \usepackage{color}
+    \usepackage{listings}
+    \usepackage{tcolorbox}
+    \usepackage[a4paper,left=3cm,right=3cm,top=4cm,bottom=4cm]{geometry}
+    
+    \title{\Large{Research Seminar Software Science} \\
+    \huge{Simulation of monadic effects in Haskell}}
+    \author{Brigel Pineti}
+    \date{April 2018}
+    
+    \begin{document}
+    
+    \maketitle
+    
+    \section*{Abstract}
+    
+    TODO: Write once the paper is coming to an end!
+    
+    \section{Introduction}
+    
+    Pure function languages like Haskell rule out side effects. Why? Firstly, to allow unrestricted application of program transformation and equation logic. Secondly, being a non-strict language, Haskell's order of side effects is undefined. The aim of this paper is to show how monads can be used to capture impure effects into a pure language. The code snippets attached to this paper are implemented in Haskell. Section 2 will provide an overview on the characteristics of the language being used. Section 3 describes the construction of a monad, the various monadic flavors and the Maybe Monad as an illustrative example to get the reader's feet wet with the complex concept of a Monadic value. The application of monads is demonstrated with one case study to construct recursive decent parsers. \textit{(more cases studies to be added on next intermediate presentation)} 
+    
+    \section{Haskell}
+    
+    In this section are reflected two main features concerning the above mentioned functional language. Taking into consideration that not every reader might be familiar with the properties of the language, I found it necessary to briefly illustrate the laziness and purity of Haskell.  
+    
+    \subsection{Lazy Evaluation}
+    
+    Haskell is a functional language with non-strict semantics. What does this mean? An expression is evaluated from the outside in. For instance, the evaluation of \textit{$(a + (b * c))$} will firstly reduce the \textit{$+$} operator and then the inner bracket \textit{$(a * b)$}. \\
+    Lazy evaluation is just an implementation approach for a non-strict language. An appropriate definition for laziness can be represented by the term \textit{call-by-need}. Consequently, the evaluation of an expression is delayed until its result is actually needed from another computation. Therefore, the parameters of a function are evaluated only when they are needed and not a moment before.
+    
+    \subsection{Absence of Side Effects}
+    
+    A straightforward consequence of laziness is the evaluation order of a Haskell program. Being demand-driven, it becomes impossible for a function call to produce any side effects. Therefore, Haskell is considered to be a \textit{pure language}. For example, a function of type $Char \rightarrow Char$ will neither write nor read any mutable variables. Nevertheless, side effects are without any doubt very convenient. Haskell's restricted side effects resulted in a sluggish input/output. For this reason, monadic I/O was created; thus by leading to a functional language with side effects. 
+    \section{Monads}
+    Monads originate from a section of mathematics called category theory \cite{categorytheory}. Luckily for the inexperienced readers, it is not required to have prior knowledge in category theory in order to comprehend the application of monads in Haskell. 
+    Nevertheless, there exists a certain complexity when it comes to grasping to concept of a monad. From history, monads were initially adopted in Haskell to produce input and output operations. However, the capabilities of monads were not bound to just I/O. Additionally, monads can support multiple operations such as state, non-determinism, continuations, exceptions etc.
+    \subsection{Construction}
+    For now think of a monad as a way of chaining operations together. 
+    In order to have a monad, three components are essential to its construction: 
+    \begin{itemize}
+        \item a type constructor
+        \item a function return
+        \item a bind operator ($\gg$=)
+    \end{itemize}
+    The \textit{return} function and the bind operator ($\gg$=) have the following types: 
+    \begin{tcolorbox}
+      \begin{lstlisting}[language=Haskell]
+       return :: a -> M a 
+       (>>=)  :: M a -> (a -> M b) -> M b 
+      \end{lstlisting}
+    \end{tcolorbox}
+    In order for the above function definitions to hold, the monad laws need to be satisfied. There exist three monadic laws as presented below: 
+    \begin{tcolorbox}
+      \begin{lstlisting}[language=Haskell]
+    right unit             m >>= return  =  m 
+    left  unit      return x >>= f       =  f x   
+    associative    (m >>= f) >>= g       =  m >>= (\x -> f x >>= g) 
+      \end{lstlisting}
+    \end{tcolorbox}
+    
+    According to the laws of right and left unit, the return serves as a collector of a value where no computation occurs. As the type of \textit{return} suggests, it takes a value of type \textit{a}, puts it in a special context \textit{m} and returns as a result \textit{m a}. Furthermore, the associative law guarantees that the bind operator ($\gg$=) is concerned only with the order of computation and not on the manner the operators are nested together. The bind operation can be compared to a semicolon(;) by taking the output from the former step and feeding it to the next step.
+    \subsection{Flavors}
+    
+    It is crucial to understand that there exist more than one kind of monad. As a result, the implementation of the bind function ($\gg$=) mentioned on the previous section differs on various monads. 
+    
+    \begin{itemize}
+        \item \textbf{Fail Monad} - Consider the case that each step will \textit{return} either a success or a fail. The bind operator can be constructed in such a way that the next step will be executed only if the former step succeeds. Hence, there is no need to check if the previous step failed since the \textit{fail monad} will take care of this by automatically aborting in case of a former failing step.
+        \begin{center}
+            \textbf{data} Failure \textit{a} = Fail $\vert$ Success \textit{a} 
+        \end{center}
+        \item \textbf{Exception Monad} - Either returns a values or raises an exception. Since it is up to the developer to implement such a monad, he/she may decide to ignore the first exception and throw an exception only if a second one is found. 
+        \begin{center}
+            \textbf{data} Exc \textit{e a} = Exception \textit{e} $\vert$ OK \textit{a}
+        \end{center}
+        \item \textbf{List Monad} - Models non-deterministic computation and return a sequence of values. There exists the opportunity to program each step to return multiple values. The bind operator ($\gg$=) may be used to iterate over these values and pass each value to the upcoming step. Otherwise various loops would be needed to deal with all these results. As it can be seen, the bind operator of the list monad would be very beneficial by removing the complexity of adding loops to retrieve information. 
+        \begin{center}
+            \textbf{type} List \textit{a} = [\textit{a}]
+        \end{center}
+        \item \textbf{State Reader Monad} - Accepts a state as an input and reads a value of type \textit{a} without performing any computation on the state itself. The bind operator can be used to pass additional data with the sole purpose to access it from anywhere without the necessity to manually pass data to every step in order to read it. 
+        \begin{center}
+            \textbf{type} SR \textit{s a} = \textit{s} $\rightarrow$ \textit{a}
+        \end{center}
+        \item \textbf{State Transformer Monad} - Mainly used to thread the state during program execution. The transformer takes the old state as an input and returns a tuple of the value of type \textit{a} and the new state. Additionally, the state transformer is perfect for simulating update operations.
+        \begin{center}
+            \textbf{type} ST \textit{s a} = \textit{s} $\rightarrow$ (\textit{a}, \textit{s})
+        \end{center}
+        \item \textbf{Parser Monad} - Extremely helpful in modeling parsers. The input is a String to be parsed and the output is a list containing the parsed value of type \textit{a} and the remaining unparsed String. The list represents all the possible parses of the input String; being empty if nothing is parsed, having only one parse if there is one parse and so on. The parser monad is equivalent to the combination between the list monad and the state transformer monad.  
+        \begin{center}
+            \textbf{type} Parser \textit{a} = String $\rightarrow$ [(\textit{a}, String)] 
+        \end{center}
+    \end{itemize}
+    It is thought-provoking how any type can act as a \textit{Monad} just by defining some functions that comply with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} \cite{essenceFP}.
+    
+    \subsection{Maybe}
+    The Maybe monad has been selected to provide a concrete insight on how a monad works in practice. The nature of Maybe provides a smooth solution to situations where some function may or may not return a value. The type constructor is presented below:
+    
     \begin{center}
-        \textbf{data} Failure \textit{a} = Fail $\vert$ Success \textit{a} 
+        \textbf{data} Maybe \textit{a} = Just \textit{a} $\vert$ Nothing 
     \end{center}
-    \item \textbf{Exception Monad} - Either returns a values or raises an exception. Since it is up to the developer to implement such a monad, he/she may decide to ignore the first exception and throw an exception only if a second one is found. 
+    The Maybe type constructor suggests that for any value of type \textit{a}, it returns either \textit{Just} that value or \textit{Nothing}. The \textit{return} and ($\gg$=) are defined like this:
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell]
+        return :: a -> Maybe a
+        return x     = Just x 
+    \end{lstlisting}
+    \end{tcolorbox}
+    The \textbf{return} will take as an input a normal value and place it inside the context of a Maybe value. In this case, it is placed inside the \textbf{Just} value constructor. For example: 
+    
     \begin{center}
-        \textbf{data} Exc \textit{e a} = Exception \textit{e} $\vert$ OK \textit{a}
+        ghci$>$ \textbf{return} \textit{``hello"}
     \end{center}
-    \item \textbf{List Monad} - Models non-deterministic computation and return a sequence of values. There exists the opportunity to program each step to return multiple values. The bind operator ($\gg$=) may be used to iterate over these values and pass each value to the upcoming step. Otherwise various loops would be needed to deal with all these results. As it can be seen, the bind operator of the list monad would be very beneficial by removing the complexity of adding loops to retrieve information. 
+    The resulting value of the above operation will be \textbf{Just} \textit{``hello"}.
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell]
+        (>>=) :: Maybe a -> (\a -> Maybe b) -> Maybe b
+        Nothing >>= f = Nothing
+        Just x  >>= f = f x
+    \end{lstlisting}
+    \end{tcolorbox}
+    The binding operator ($\gg$=) takes \textbf{Maybe a} and a function of type \textbf{a $\rightarrow$ Maybe b} and somehow applies the function to \textbf{Maybe a} in order to return \textbf{Maybe b}. An example might be useful to illustrate this: 
     \begin{center}
-        \textbf{type} List \textit{a} = [\textit{a}]
+    ghci$>$ \textbf{Just} \textit{``smile"} $\gg=$ \textbackslash x $\rightarrow$ \textbf{Just} (\textit{x} ++ \textit{`` :)"})
     \end{center}
-    \item \textbf{State Reader Monad} - Accepts a state as an input and reads a value of type \textit{a} without performing any computation on the state itself. The bind operator can be used to pass additional data with the sole purpose to access it from anywhere without the necessity to manually pass to every step in order to read it. 
+    When the function is applied to \textbf{Just ``smile"}, it removes \textbf{``smile"} from its special context and passes it as an input to the function \textbf{\textbackslash x $\rightarrow$ Just (x ++ `` :)")}.  The function will return \textbf{Just ``smile :)"}. This is what I call magic! On the other hand, replacing \textbf{Just ``smile"} with the value constructor \textbf{Nothing} will always result in \textbf{Nothing} being independent from the function \textbf{f}.
+    
+    
+    \subsection{Conclusions}
+    A monad is helpful in chaining various computations together and managing how that chain of action functions as a unit. In addition, the monadic laws will be in charge of supervising two imperative cases:
+    
+    \begin{itemize}
+        \item state between actions by guaranteeing that they are executed in the appropriate order 
+        \item failing situations by ensuring that upcoming actions are aborted and the whole expression is evaluated to a failure
+    \end{itemize}
+    Therefore, it is essential to understand how the Maybe types work as a Monad in order to then comprehend more complicated Monads like \textit{State} and \textit{IO}.
+    
+    \section{Arrays}
+    Arrays in Haskell are not treated as ordinary functions but and abstract data types.   
+    
+    \section{Parsers}
+    Monads are valuable in modeling sequencing and alternation in recursive decent parsers. The methods described in this section are extensible since parsers are treated as first-class values and combinators are defined in Haskell. Additionally, it portrays the purity of functional programming.
+    
+    \subsection{State Transformers}
+    
+    Parsers in functional programming are pictured as state transformers \cite{original}. Recall state transformers monads from section 3.2.  
+    
+    \begin{tcolorbox}
+      \begin{lstlisting}[language=Haskell]
+      type Parse p = State -> [(p, State)]
+      type State    = String  
+      
+      \end{lstlisting}
+    \end{tcolorbox}
+    
+    The parser of type \textit{p} takes a state represented as a string ready to be parsed and returns a list containing the value of type \textit{p} parsed from the string and a state represented again as a string that is yet to be parsed. The case when an empty list is returned is treated as a failure \cite{pearls}. On the other hand, an non-empty list is marked as a success. Lets take into consideration a transparent parser for multiplication operations.
+    
     \begin{center}
-        \textbf{type} SR \textit{s a} = \textit{s} $\rightarrow$ \textit{a}
+        \textbf{data} Expr = Const \textit{Int} $\vert$ Multi \textit{Expr} \textit{Expr} 
     \end{center}
-    \item \textbf{State Transformer Monad} - Mainly used to thread the state during program execution. The transformer takes the old state as an input and returns a tuple of the value of type \textit{a} and the new state. Additionally, the state transformer is perfect for simulating update operations.
+    
+    Next, lets create a parser of type Expr. 
+    
     \begin{center}
-        \textbf{type} ST \textit{s a} = \textit{s} $\rightarrow$ (\textit{a}, \textit{s})
+        parseExpr :: \textbf{Parse} \textit{Expr} 
     \end{center}
-    \item \textbf{Parser Monad} - Extremely helpful in modeling parsers. The input is a String to be parsed and the output is a list containing the parsed value of type \textit{a} and the remaining unparsed String. The list represents all the possible parses of the input String; being empty if nothing is parsed, having only one parse if there is one parse and so on. The parser monad is equivalent to the combination between the list monad and the state transformer monad.  
-    \begin{center}
-        \textbf{type} Parser \textit{a} = String $\rightarrow$ [(\textit{a}, String)] 
-    \end{center}
-\end{itemize}
-It is thought-provoking how any type can act as a \textit{Monad} just by defining some functions that complies with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} \cite{essenceFP}.
-
-\subsection{Maybe}
-The Maybe monad has been selected to provide a concrete insight on how a monad works in practice. The nature of Maybe provides a smooth solution to situations where some function may or may not return a value. The type constructor is Maybe as presented below:
-
-\begin{center}
-    \textbf{data} Maybe \textit{a} = Just \textit{a} $\vert$ Nothing 
-\end{center}
-The type constructor Maybe suggests that for any value of type \textit{a}, it returns either \textit{Just} that value or \textit{Nothing}. The \textit{return} and ($\gg$=) are defined like this:
-\begin{tcolorbox}
-\begin{lstlisting}[language=Haskell]
-    return :: a -> Maybe a
-    return x     = Just x 
-\end{lstlisting}
-\end{tcolorbox}
-The \textbf{return} will take an an input a normal value and place it inside the context of a Maybe value. In the this case, it placed it inside the \textbf{Just} value constructor. For example: 
-
-\begin{center}
-    ghci$>$ \textbf{return} \textit{``hello"}
-\end{center}
-The resulting value of the above operation will be \textbf{Just} \textit{``hello"}.
-\begin{tcolorbox}
-\begin{lstlisting}[language=Haskell]
-    (>>=) :: Maybe a -> (\a -> Maybe b) -> Maybe b
-    Nothing >>= f = Nothing
-    Just x  >>= f = f x
-\end{lstlisting}
-\end{tcolorbox}
-The binding operator ($\gg$=) takes \textbf{Maybe a} and a function of type \textbf{a $\rightarrow$ Maybe b} and somehow applies the function to \textbf{Maybe a} in order to return \textbf{Maybe b}. An example might be useful to illustrate this: 
-\begin{center}
-ghci$>$ \textbf{Just} \textit{``smile"} $\gg=$ \textbackslash x $\rightarrow$ \textbf{Just} (\textit{x} ++ \textit{`` :)"})
-\end{center}
-When the function is applied to \textbf{Just ``smile"}, it removes \textbf{``smile"} from its special context and passes it as an input to the function \textbf{\textbackslash x $\rightarrow$ Just (x ++ `` :)")}.  The function will return \textbf{Just ``smile :)"}. This is what I call magic! On the other hand, replacing \textbf{Just ``smile"} with the value constructor \textbf{Nothing} will always result in \textbf{Nothing} being independent from the function \textbf{f}.
-
-
-\subsection{Conclusions}
-A monad is helpful in chaining various computations together and managing how that chain of action functions as a unit. In addition, the monadic laws will be in charge of supervising two imperative cases:
-
-\begin{itemize}
-    \item state between actions by guaranteeing that they are executed in the appropriate order 
-    \item failing situations by ensuring that upcoming actions are aborted and the whole expression is evaluated to a failure
-\end{itemize}
-Therefore, it is essential to understand how the Maybe types work as a Monad in order to then comprehend more complicated Monads like \textit{State} and \textit{IO}.
-
-\section{Arrays}
-Arrays in Haskell are not treated as ordinary functions but and abstract data types.   
-
-\section{Parsers}
-
-\begin{thebibliography}{9}
-\bibitem{categorytheory} 
-M. D. Hill, Jonathan & Clarke, Keith. (1994). \textit{An Introduction to Category Theory, Category Theory Monads, and Their Relationship to Functional Programming}.
-\bibitem{essenceFP}
-Wadler, P. (1992b). \textit{The essence of functional programming. In
-20th ACM Symposium on Principles of Programming Languages}
-(POPL’92), pages 1–14. ACM, Albuquerque.
-\end{thebibliography}
-\end{document}
+    
+    The following examples take as input the state defined as a string. 
+    
+    \begin{lstlisting}[language=Haskell]
+        parseExpr "27 or twentyseven" = [(Const 27, " or twentyseven")] 
+        parseExpr "twentyseven"       = []
+    \end{lstlisting}
+    
+    Using pattern matching another parser can be defined with the sole purpose to eat the first character of the input and fail when no input is provided. 
+    
+    \begin{tcolorbox}
+      \begin{lstlisting}[language=Haskell]
+      oneElem         :: Parse Char
+      oneElem []       = []
+      oneElem (l : ls) = [(l, ls)]
+     \end{lstlisting}
+    \end{tcolorbox}
+    
+    To better illustrate follow the examples below that treat both cases.
+    
+      \begin{lstlisting}[language=Haskell]
+      oneElem ""       = []
+      oneElem "parser" = [('p', "arser")]
+     \end{lstlisting}
+    
+    
+    \begin{thebibliography}{9}
+    \bibitem{categorytheory} 
+    M. D. Hill, Jonathan & Clarke, Keith. (1994). \textit{An Introduction to Category Theory, Category Theory Monads, and Their Relationship to Functional Programming}.
+    \bibitem{essenceFP}
+    Wadler, P. (1992b). \textit{The essence of functional programming. In
+    20th ACM Symposium on Principles of Programming Languages}
+    (POPL’92), pages 1–14. ACM, Albuquerque.
+    \bibitem{original}
+    Walder, P. \textit{Monads for functional programming}, section 5.2. University of Glasgow. 
+    \bibitem{pearls}
+    Hutton, G. and Meijer, E. \textit{Monadic Parsing in Haskell}. University of Nottingham.
+    \end{thebibliography}
+    \end{document}
+    
