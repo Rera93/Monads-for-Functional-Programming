@@ -19,9 +19,11 @@
 
 \section*{Abstract}
 
+TODO: Write once the paper is coming to an end!
+
 \section{Introduction}
 
-Pure function languages like Haskell rule out side effects. Why? Firstly, to allow unrestricted application of program transformation and equation logic. Secondly, being a non-strict language, Haskell's order of side effects is undefined. The aim of this paper is to show how monads can be used to exploit impure effects into a pure language. The code snippets attached to this paper are implemented in Haskell. Section 2 will provide an overview on the characteristics of the language being used. Section 3 is using the Maybe Monad as an illustrative example to get the reader's feet wet with the complex concept of a Monadic value. The application of monads is demonstrated with three case studies.
+Pure function languages like Haskell rule out side effects. Why? Firstly, to allow unrestricted application of program transformation and equation logic. Secondly, being a non-strict language, Haskell's order of side effects is undefined. The aim of this paper is to show how monads can be used to exploit impure effects into a pure language. The code snippets attached to this paper are implemented in Haskell. Section 2 will provide an overview on the characteristics of the language being used. Section 3 describes the construction of a monad, the various monadic flavors and the Maybe Monad as an illustrative example to get the reader's feet wet with the complex concept of a Monadic value. The application of monads is demonstrated with three case studies.
 
 \section{Haskell}
 
@@ -30,13 +32,13 @@ In this section are reflected two main features concerning the above mentioned f
 \subsection{Lazy Evaluation}
 
 Haskell is a functional language with non-strict semantics. What does this mean? An expression is evaluated from the outside in. For instance, the evaluation of \textit{$(a + (b * c))$} will firstly reduce the \textit{$+$} operator and then the inner bracket \textit{$(a * b)$}. \\
-Lazy evaluation is just an implementation approach for a non-strict language. An appropriate definition for laziness can be represented by the term \textit{call-by-need}. Consequently, the evaluation of an expression is delayed until its result is actually needed from another computation. Therefore, the parameters of a function are evaluated only when they are needed and not a moment before. An advantage of laziness 
+Lazy evaluation is just an implementation approach for a non-strict language. An appropriate definition for laziness can be represented by the term \textit{call-by-need}. Consequently, the evaluation of an expression is delayed until its result is actually needed from another computation. Therefore, the parameters of a function are evaluated only when they are needed and not a moment before.
 
 \subsection{Absence of Side Effects}
 
 A straightforward consequence of laziness is the evaluation order of a Haskell program. Being demand-driven, it becomes impossible for a function call to produce any side effects. Therefore, Haskell is considered to be a \textit{pure language}. For example, a function of type $Char \rightarrow Char$ will neither write nor read any mutable variables. Nevertheless, side effects are without any doubt very convenient. Haskell's restricted side effects resulted in a sluggish input/output. For this reason, monadic I/O was created; thus by leading to a functional language with side effects. 
 \section{Monads}
-Monads originate from a section of mathematics called category theory. Luckily for us, it is not required to have prior knowledge in category theory in order to comprehend the application of monads in Haskell. 
+Monads originate from a section of mathematics called category theory \cite{categorytheory}. Luckily for us, it is not required to have prior knowledge in category theory in order to comprehend the application of monads in Haskell. 
 Nevertheless, there exists a certain complexity when it comes to grasping to concept of a monad. From history, monads were initially adopted in Haskell to produce input and output operations. However, the capabilities of monads were not bound to just I/O. Additionally, monads can support multiple operations such as state, non-determinism, continuations, exceptions etc.
 \subsection{Construction}
 For now think of a monad as a way of chaining operations together. 
@@ -93,7 +95,7 @@ It is crucial to understand that there exist more than one kind of monad. As a r
         \textbf{type} Parser \textit{a} = String $\rightarrow$ [(\textit{a}, String)] 
     \end{center}
 \end{itemize}
-It is thought-provoking how any type can act as a \textit{Monad} just by defining some functions that complies with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} (Wadler, 1992).
+It is thought-provoking how any type can act as a \textit{Monad} just by defining some functions that complies with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} \cite{essenceFP}.
 
 \subsection{Maybe}
 The Maybe monad has been selected to provide a concrete insight on how a monad works in practice. The nature of Maybe provides a smooth solution to situations where some function may or may not return a value. The type constructor is Maybe as presented below:
@@ -137,5 +139,12 @@ A monad is helpful in chaining various computations together and managing how th
 \end{itemize}
 Therefore, it is essential to understand how the Maybe types work as a Monad in order to then comprehend more complicated Monads like \textit{State} and \textit{IO}.
 
-
+\begin{thebibliography}{9}
+\bibitem{categorytheory} 
+M. D. Hill, Jonathan & Clarke, Keith. (1994). \textit{An Introduction to Category Theory, Category Theory Monads, and Their Relationship to Functional Programming}.
+\bibitem{essenceFP}
+Wadler, P. (1992b). \textit{The essence of functional programming. In
+20th ACM Symposium on Principles of Programming Languages}
+(POPL’92), pages 1–14. ACM, Albuquerque.
+\end{thebibliography}
 \end{document}
