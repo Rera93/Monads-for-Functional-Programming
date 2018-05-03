@@ -151,9 +151,10 @@
     The \textbf{return} wraps a values of type \textit{x} and places it into the special context of a list. In other words, it creates a list that contains only that single value. Afterwards, this not so simple value anymore can interact with other values to produce a non-deterministic nature.   \\ \\
     The bind operator \textbf{($>>$=)} is taking a monadic list, removing its elements from the monadic context and feeding them into a function that takes normal values and returns again monadic list.  In order to remove the confusion, the example below can be used to clarify the complexity of the bind operator: \\
     \begin{lstlisting}[language=Haskell]
-       ghci> [3,6,10] >>= \x -> [x, 2*x]
-       [3,6,6,12,10,20]
+       ghci> [3, 6, 10] >>= \x -> [x, 2*x]
+       [3, 6, 6, 12, 10, 20]
     \end{lstlisting} \\
+    Therefore, the purpose of the bind operator is to facilitate the non-deterministic attitude of lists. \textbf{[3, 6, 10]} is a non-deterministic list that is being feed into a function that itself returns a non-deterministic list. Hence, the final result will be a non-deterministic list containing all the possible combinations between the elements of the list \textbf{[3, 6, 10]} and the passing of these values to the function \textbf{\textbackslash x $\rightarrow$ [x, 2*x]}. The job of the function is straightforward. The function generates two outcomes for each element of the input list, the original value and the value multiplied by 2. 
     
     
     
