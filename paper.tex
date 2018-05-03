@@ -141,7 +141,21 @@
     
     \section{Lists}
     This section shows how the monadic behaviour of lists can be used in our advantage to explicitly demonstrate non-determinism. \\ \\
-    In general, lists can be both \textit{deterministic} and \textit{non-deterministic}. For instance, take into consideration a list containing just one element \textbf{[27]}. Clearly, the former list is deterministic since it accommodates a single value and it is apparent that the value equals to 27. On the other hand, a list enclosing more than one element \textbf{[27, 6, 21]} introduces non-deterministic behaviour since it can have many outcomes at the same time. \\ 
+    In general, lists can be both \textit{deterministic} and \textit{non-deterministic}. For instance, take into consideration a list containing just one element \textbf{[27]}. Clearly, the former list is deterministic since it accommodates a single value and it is apparent that the value equals to 27. On the other hand, a list enclosing more than one element \textbf{[27, 6, 21]} introduces non-deterministic behaviour since it can have many outcomes at the same time. \\ \\
+    The notion of \textit{non-determinism} can be decoded smoothly in monadic terms. Below is illustrate how the Monad instance is defined for a list: \\
+    \begin{lstlisting}[language=Haskell]
+        instance Monad [] where
+            return x = [x]
+            xs >>= f = concat (map f xs)
+    \end{lstlisting} 
+    The \textbf{return} wraps a values of type \textit{x} and places it into the special context of a list. In other words, it creates a list that contains only that single value. Afterwards, this not so simple value anymore can interact with other values to produce a non-deterministic nature.   \\ \\
+    The bind operator \textbf{($>>$=)} is taking a monadic list, removing its elements from the monadic context and feeding them into a function that takes normal values and returns again monadic list.  In order to remove the confusion, the example below can be used to clarify the complexity of the bind operator: \\
+    \begin{lstlisting}[language=Haskell]
+       ghci> [3,6,10] >>= \x -> [x, 2*x]
+       [3,6,6,12,10,20]
+    \end{lstlisting} \\
+    
+    
     
     \section{Parsers}
     Monads are valuable in modeling sequencing and alternation in recursive decent parsers. The methods described in this section are extensible since parsers are treated as first-class values and combinators are defined in Haskell. Additionally, it portrays the purity of functional programming.
