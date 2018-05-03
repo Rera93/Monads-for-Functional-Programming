@@ -139,8 +139,9 @@
     \end{itemize}
     Therefore, it is essential to understand how the Maybe types work as a Monad in order to then comprehend more complicated Monads like \textit{State} and \textit{IO}.
     
-    \section{Arrays}
-    Arrays in Haskell are not treated as ordinary functions but and abstract data types.   
+    \section{Lists}
+    This section shows how the monadic behaviour of lists can be used in our advantage to explicitly demonstrate non-determinism. \\ \\
+    In general, lists can be both \textit{deterministic} and \textit{non-deterministic}. For instance, take into consideration a list containing just one element \textbf{[27]}. Clearly, the former list is deterministic since it accommodates a single value and it is apparent that the value equals to 27. On the other hand, a list enclosing more than one element \textbf{[27, 6, 21]} introduces non-deterministic behaviour since it can have many outcomes at the same time. \\ 
     
     \section{Parsers}
     Monads are valuable in modeling sequencing and alternation in recursive decent parsers. The methods described in this section are extensible since parsers are treated as first-class values and combinators are defined in Haskell. Additionally, it portrays the purity of functional programming.
