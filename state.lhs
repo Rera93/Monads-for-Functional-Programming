@@ -1,6 +1,7 @@
-> half x = (x `div` 2, "I just halved " ++ (show x) ++ "!")
-> halfTwice x :: (val2, log1 ++ log2)
->     where (val1, log1) = half x
->           (val2, log2) = half val1
+> import Data.Monoid
 
-> data Writer w a = Writer { runWriter :: (a, w) } 
+> isBigGang :: Int -> (Bool, String) 
+> isBigGang x = (x > 9, "Compared gang size to 9.")
+
+> applyLog :: (Monoid m) => (a, m) -> (a -> (b, m)) -> (b, m)
+> applyLog (x, log) f = let (y, newLog) = f x in (y, log `mappend` newLog)
