@@ -1,2 +1,8 @@
+
+> type Parser p = State -> [(p, State)]
 > type State = String
-> newtype Parser p = Parser (State -> [(p, State)])
+
+> parseOneItem :: Parser Char
+> parseOneItem = (\items -> case items of
+>                   []             -> []
+>                   (item : items) -> [(item, items)])
