@@ -6,7 +6,7 @@
     \usepackage{color}
     \usepackage{listings}
     \usepackage{tcolorbox}
-    \usepackage[a4paper,left=3cm,right=3cm,top=4cm,bottom=4cm]{geometry}
+    \usepackage[a4paper,left=2.9cm,right=2.9cm,top=4cm,bottom=4cm]{geometry}
     
     \title{\Large{Research Seminar Software Science} \\
     \huge{Simulation of monadic effects in Haskell}}
@@ -233,7 +233,7 @@
     
     \subsubsection{Sequencing}
     
-    Sequencing of parsers is usually captured by a combinator called \textit{seq} where two parsers are applied one after another with the result from the two parsers being combined together as a tuple. The exaple below will illustrate the definition of the \textit{seq} operator:
+    Sequencing of parsers is usually captured by a combinator called \textit{seq} where two parsers are applied one after another with the result from the two parsers being combined together as a tuple. The example below will illustrate the definition of the \textit{seq} operator:
     
     \begin{tcolorbox}
     
@@ -246,8 +246,30 @@
     
     In order to define the \textit{seq} operator, list comprehensions come in handy. Initially, the right side of the vertical bar is executed. In case, the parser \textbf{p} takes a non-empty \textbf{input} string, then a list of pairs will be returned accommodating the consumed prefix of the \textbf{input} and the unconsumed suffix of the \textbf{input}. The resulting list of pairs for the parser \textbf{p input} is \textbf{(v, input')}. \\ \\ Immediately after the parser \textbf{p} has accomplished it's goal, the parser \textbf{q} will take as an input string the un-parsed string from the former parser. In other words, the parser \textbf{q} takes as an input string the string \textbf{input'}. The outcome of the parser \textbf{q input'} will be the list of pairs \textbf{(w, input'')} where \textbf{u} is the \textit{prefix of the input'} and \textbf{input''} is the \textit{suffix of the input'}. \\ \\
     As a last step (the left side of the vertical bar), the parser combinator \textbf{seq} will sew together the values \textbf{u} and \textbf{v} into a tuple and return a list of pairs like \textbf{[((v, u), input'')]}. \\ \\
-    In the above situation, the operator \textbf{seq} will continuously nest tuples together thus be increasing complexity and making it painful to handle.
+    In the above situation, the operator \textbf{seq} will continuously nest tuples together thus be increasing complexity and making it painful to handle. \\ \\
+    The headache introduced by the nested tuples can be smoothly averted by adopting monadic sequencing. In order to achieve this type of sequencing the bind operator has been defined. The type of this operator resembles with the type of the bind operator from monad instance \textit{m}. Recalling from the section 3.1 of Monad Construction, the type of ($>>$=) was {\textbf{m a $\rightarrow$ (a $\rightarrow$ m b) $\rightarrow$ m b}}. In the monadic sequencing case, the \textit{m} is being replaced with \textit{Parse}.
     
+    \begin{tcolorbox}
+    
+    \begin{lstlisting}[language=Haskell]
+      bind :: Parse a -> (a -> Parse b) -> Parser b
+      p `bind` f = \input -> concat [f v input' | (v, input') <- p input]
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    The \textbf{bind} combinator is an infix operator that take a parser from the left side and a function that itself takes a normal value and returns another parser from the right side. The infix \textbf{bind} is defined as a lambda expression taking a string as an input and producing a concatenation of the values parsed by the sequencing of parsers. \\ \\
+    At first, the parser \textbf{p} is applied to the input string and results in a list of pairs \textbf{(v, input')} where \textit{v} is the first item exhausted by the parser \textbf{p} and the \textit{input'} is the remaining input string. \\ \\
+    Now, the function \textbf{f} applies to the normal value \textbf{v} to form a parser \textbf{f v} which is afterwards applied the string \textbf{input'}. The resulting parser will be a list of concatenated lists. The examples below will help in clarifying any confusion being raised by the \textbf{bind} operator. 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell]
+      parseOneItem :: Parse Char
+      parseOneItem  = oneItem `bind` \x -> result x 
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    The parser \textbf{parseOneItem} produces that same result as the primitive parser \textbf{oneItem} defined in section 5.2 but their implementation differs. The latter parser is using the former parser in its definition. \\ \\ 
+    In practice, the \textbf{oneItem} parser is consuming the first character of an input string and through the \textbf{bind} operator this value is being passed as an input to the lambda function expression \textbf{\textbackslash x $\rightarrow$ result x}. Furthermore, this function is returning the primitive \textbf{result} parser. From section 5.2, the \textbf{result} parser will always succeed by returning the value x that was passed to it without exhausting any input string. In this case, the goal of the \textbf{result} parser is to just display what was parsed and what was not parsed, and doesn't need to worry about parsing since the \textbf{oneItem} parser is taking care of that.  
     
     \subsubsection{Alternation}
     
