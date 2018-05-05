@@ -173,7 +173,7 @@
       \end{lstlisting}
     \end{tcolorbox}
     
-    The parser of type \textit{p} takes a state represented as a string ready to be parsed and returns a list containing the value of type \textit{p} parsed from the string and a state represented again as a string that is yet to be parsed. The case when an empty list is returned is treated as a failure \cite{pearls}. On the other hand, an non-empty list is marked as a success. Lets take into consideration a transparent parser for multiplication operations.
+    The parser of type \textit{p} takes a state represented as a string ready to be parsed and returns a list containing the value of type \textit{p} parsed from the string and a state represented again as a string that is yet to be parsed. Since a parser may not consume all of its input string, the unconsumed suffix of the input must be returned along with the prefix of the input. As a result, the outcome of a parser must be a list enclosing consumed and unconsumed part of the input string. Additionally, the case when an empty list is returned is treated as a failure \cite{pearls}. On the other hand, an non-empty list is marked as a success. Lets take into consideration a straightforward parser for multiplication operations.
     
     \begin{center}
         \textbf{data} Expr = Const \textit{Int} $\vert$ Multi \textit{Expr} \textit{Expr} 
@@ -191,6 +191,8 @@
         parseExpr "27 or twentyseven" = [(Const 27, " or twentyseven")] 
         parseExpr "twentyseven"       = []
     \end{lstlisting}
+    
+    \subsection{Primitive Parsers}
     
     Using pattern matching another parser can be defined with the sole purpose to eat the first character of the input and fail when no input is provided. 
     
