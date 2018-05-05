@@ -194,21 +194,22 @@
     
     \subsection{Primitive Parsers}
     
-    Using pattern matching another parser can be defined with the sole purpose to eat the first character of the input and fail when no input is provided. 
-    
+    This subsection will introduce three primitive parsers with the sole purpose to achieve diverse parser combinators. \\ \\
+    Firstly, the parser oneItem will fail if the input provided is an empty list. Otherwise, it will eat only the first character of the input string and leave the other part of the input unconsumed. This parser is defined by applying pattern matching on the list. 
+     
     \begin{tcolorbox}
       \begin{lstlisting}[language=Haskell]
-      oneElem         :: Parse Char
-      oneElem []       = []
-      oneElem (l : ls) = [(l, ls)]
+      oneItem         :: Parse Char
+      oneItem []       = []
+      oneItem (l : ls) = [(l, ls)]
      \end{lstlisting}
     \end{tcolorbox}
     
     To better illustrate follow the examples below that treat both cases.
     
       \begin{lstlisting}[language=Haskell]
-      oneElem ""       = []
-      oneElem "parser" = [('p', "arser")]
+      oneItem ""       = []
+      oneItem "parser" = [('p', "arser")]
      \end{lstlisting}
     
     
