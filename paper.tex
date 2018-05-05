@@ -271,6 +271,14 @@
     The parser \textbf{parseOneItem} produces that same result as the primitive parser \textbf{oneItem} defined in section 5.2 but their implementation differs. The latter parser is using the former parser in its definition. \\ \\ 
     In practice, the \textbf{oneItem} parser is consuming the first character of an input string and through the \textbf{bind} operator this value is being passed as an input to the lambda function expression \textbf{\textbackslash x $\rightarrow$ result x}. Furthermore, this function is returning the primitive \textbf{result} parser. From section 5.2, the \textbf{result} parser will always succeed by returning the value x that was passed to it without exhausting any input string. In this case, the goal of the \textbf{result} parser is to just display what was parsed and what was not parsed, and doesn't need to worry about parsing since the \textbf{oneItem} parser is taking care of that.  
     
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell]
+      parseTwoItems :: Parse (Char, Char)
+      parseTwoItems  = oneItem `bind` \x -> oneitem `bind` 
+                                      \y -> result (x, y)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
     \subsubsection{Alternation}
     
     \begin{thebibliography}{9}
