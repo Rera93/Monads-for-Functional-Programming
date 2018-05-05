@@ -192,25 +192,40 @@
         parseExpr "twentyseven"       = []
     \end{lstlisting}
     
+    For simplicity, the focus will remain on parsers that either fail and return an empty list of results, or succeed and return a singleton list.
+    
     \subsection{Primitive Parsers}
     
     This subsection will introduce three primitive parsers with the sole purpose to achieve diverse parser combinators. \\ \\
     Firstly, the parser oneItem will fail if the input provided is an empty list. Otherwise, it will eat only the first character of the input string and leave the other part of the input unconsumed. This parser is defined by applying pattern matching on the list. 
      
-    \begin{tcolorbox}
-      \begin{lstlisting}[language=Haskell]
+    
+    \begin{lstlisting}[language=Haskell]
       oneItem         :: Parse Char
       oneItem []       = []
       oneItem (l : ls) = [(l, ls)]
-     \end{lstlisting}
-    \end{tcolorbox}
+    \end{lstlisting}
     
     To better illustrate follow the examples below that treat both cases.
     
-      \begin{lstlisting}[language=Haskell]
+    \begin{lstlisting}[language=Haskell]
       oneItem ""       = []
       oneItem "parser" = [('p', "arser")]
-     \end{lstlisting}
+    \end{lstlisting}
+    Secondly, the parser \textbf{zero} will always fail, regardless of the input string provided. 
+    
+    \begin{lstlisting}[language=Haskell]
+      zero :: Parse p
+      zero = \input -> [] 
+    \end{lstlisting}
+    
+    In other words, the outcome of the \textbf{zero} parser will always be an empty list. \\ \\
+    Finally, the \textbf{result v} parser will always succeed by returning the value \textit{v} without consuming any input.
+    
+    \begin{lstlisting}[language=Haskell]
+      result :: p -> Parse p
+      result v input = [(v, input)]
+    \end{lstlisting}
     
     
     \begin{thebibliography}{9}
