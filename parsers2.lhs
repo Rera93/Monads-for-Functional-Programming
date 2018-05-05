@@ -1,15 +1,21 @@
-> {-# LANGUAGE InstaceSigs #-}
-> import Data.Char (isSpace, isDigit, ord)
-> import Control.Monad (guard)
-> import Control.Monad.Trans.State.Strict
-> import Control.Applicative (Alternative(..))
+> import Data.Char
+> import Data.Ord
 
+> type Parse p = State -> [(p, State)]
+> type State = String 
 
-> newtype Parser state maybe p = Parser (state -> maybe (p, state))
-> type state = String
+> oneItem          :: Parse Char
+> oneItem []       = []
+> oneItem (l : ls) = [(l, ls)]
 
-> parseOneItem :: Parser Char
-> parseOneItem = (\items -> case items of
->                   []             -> []
->                   (item : items) -> [(item, items)])
+> zero :: Parse p
+> zero  = \input -> []
 
+> result :: p -> Parse p 
+> result v input = [(v, input)]
+
+> bind :: Parse a -> (a -> Parse b) -> Parse b
+> p `bind` f = \input -> concat [f v input' | (v, input') <- p input]
+
+> parseOneItem :: Parse Char
+> parseOneItem = oneItem `bind` \x -> result x
