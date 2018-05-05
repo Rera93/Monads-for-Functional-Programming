@@ -5,8 +5,8 @@
 > import Control.Applicative (Alternative(..))
 
 
-> newtype Parser p = Parser (State -> [(p, State)])
-> type State = String
+> newtype Parser state maybe p = Parser (state -> maybe (p, state))
+> type state = String
 
 > parseOneItem :: Parser Char
 > parseOneItem = (\items -> case items of
