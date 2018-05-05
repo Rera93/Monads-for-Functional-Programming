@@ -233,6 +233,22 @@
     
     \subsubsection{Sequencing}
     
+    Sequencing of parsers is usually captured by a combinator called \textit{seq} where two parsers are applied one after another with the result from the two parsers being combined together as a tuple. The exaple below will illustrate the definition of the \textit{seq} operator:
+    
+    \begin{tcolorbox}
+    
+    \begin{lstlisting}[language=Haskell]
+      seq :: Parse a -> Parse b -> Parser (a, b)
+      p `seq` q = \input -> [((v, u), input'') | (v, input') <- p input,
+                                                (u, input'') <- q input']
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    In order to define the \textit{seq} operator, list comprehensions come in handy. Initially, the right side of the vertical bar is executed. In case, the parser \textbf{p} takes a non-empty \textbf{input} string, then a list of pairs will be returned accommodating the consumed prefix of the \textbf{input} and the unconsumed suffix of the \textbf{input}. The resulting list of pairs for the parser \textbf{p input} is \textbf{(v, input')}. \\ \\ Immediately after the parser \textbf{p} has accomplished it's goal, the parser \textbf{q} will take as an input string the un-parsed string from the former parser. In other words, the parser \textbf{q} takes as an input string the string \textbf{input'}. The outcome of the parser \textbf{q input'} will be the list of pairs \textbf{(w, input'')} where \textbf{u} is the \textit{prefix of the input'} and \textbf{input''} is the \textit{suffix of the input'}. \\ \\
+    As a last step (the left side of the vertical bar), the parser combinator \textbf{seq} will sew together the values \textbf{u} and \textbf{v} into a tuple and return a list of pairs like \textbf{[((v, u), input'')]}. \\ \\
+    In the above situation, the operator \textbf{seq} will continuously nest tuples together thus be increasing complexity and making it painful to handle.
+    
+    
     \subsubsection{Alternation}
     
     \begin{thebibliography}{9}
