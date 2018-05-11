@@ -22,3 +22,6 @@
 
 > parseTwoItems :: Parse (Char, Char)
 > parseTwoItems = oneItem `bind` \x -> oneItem `bind` \y -> result(x, y)  
+
+> seqq       :: Parse a -> Parse b -> Parse (a, b)
+> p `seqq` q = p `bind` \x -> q `bind` \y -> result(x, y) 
