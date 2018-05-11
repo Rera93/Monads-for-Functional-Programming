@@ -280,7 +280,13 @@
     \end{tcolorbox}
     
     The parse \textbf{parseTwoItems} manages to parse the first two characters of the input string and returns the two parsed characters and remaining part of the input string which is not yet parsed. \\ \\
-    In practice, the \textbf{parseTwoItems} is using two \textit{bind} infix operators. In the first \textit{bind}, the \textbf{oneItem} parser is eating the first character of the input string and passing the corresponding value to the function \textbf{\textbackslash x $\rightarrow$ oneItem}, which differently from the previous \textbf{parseOneItem} parser is returning another \textbf{oneItem} parser instead of the primitive \textbf{result} parser. In the second \textit{bind}, the  other \textbf{oneItem} parser is devouring the first character of the unparsed input string and passing that value as an input to the function \textbf{\textbackslash y $\rightarrow$ result(x, y)}. Finally, the resulting output will be handled by the \textbf{result} parser which will return the values of \textit{x} and \textit{y} being correspondingly the first and the second character of initial input string, together with the unparsed input string as a tuple.
+    In practice, the \textbf{parseTwoItems} is using two \textit{bind} infix operators. In the first \textit{bind}, the \textbf{oneItem} parser is eating the first character of the input string and passing the corresponding value to the function \textbf{\textbackslash x $\rightarrow$ oneItem}, which differently from the previous \textbf{parseOneItem} parser is returning another \textbf{oneItem} parser instead of the primitive \textbf{result} parser. In the second \textit{bind}, the  other \textbf{oneItem} parser is devouring the first character of the unparsed input string and passing that value as an input to the function \textbf{\textbackslash y $\rightarrow$ result(x, y)}. Finally, the resulting output will be handled by the \textbf{result} parser which will return the values of \textit{x} and \textit{y} being correspondingly the first and the second character of initial input string, together with the unparsed input string as a tuple. \\ \\ 
+    The following example will better illustrate the outcome when parsing a string:
+       \begin{center}
+            \textbf{ghci$>$} parseTwoItems \textcolor{red}{``rera"} \\
+            [((\textcolor{green}{`r'}, \textcolor{green}{`e'}), \textcolor{red}{``ra"})]
+        \end{center}
+    
     \subsubsection{Alternation}
     
     \begin{thebibliography}{9}
