@@ -295,6 +295,8 @@
     \end{lstlisting}
     \end{tcolorbox}
     
+    Unfortunately, the modified \textit{seq} operator will not work in practice. (Why? ask Peter) \\ \\ 
+    The monadic \textit{bind} operator can be used to define parsers of a different nature. For example, a \textbf{satisfy} combinator may be constructed as a function that takes a predicate as input and returns a parser that consumes the first element of a string if the predicate is true and fails if the predicate is false. In order to fulfill the required parsing behavior, the primitive parsers \textit{oneItem} and \textit{zero} mentioned in section 5.2 are necessary.  
     
     
     \subsubsection{Alternation}
