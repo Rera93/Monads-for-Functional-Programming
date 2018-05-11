@@ -19,3 +19,6 @@
 
 > parseOneItem :: Parse Char
 > parseOneItem = oneItem `bind` \x -> result x
+
+> parseTwoItems :: Parse (Char, Char)
+> parseTwoItems = oneItem `bind` \x -> oneItem `bind` \y -> result(x, y)  
