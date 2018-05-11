@@ -286,9 +286,11 @@
             \textbf{ghci$>$} parseTwoItems \textcolor{red}{``rera"} \\
             [((\textcolor{green}{`r'}, \textcolor{green}{`e'}), \textcolor{red}{``ra"})]
         \end{center}
+        
+    From the above example, it can be deduced that the outcome of the first parser can be sequentially consumed by the second parser and so on if other parsers are included. Hence, the \textit{bind} infix operator will dodge the complication introduced by the nested tuples. 
     
     \subsubsection{Alternation}
-    
+     
     \begin{thebibliography}{9}
     \bibitem{categorytheory} 
     M. D. Hill, Jonathan & Clarke, Keith. (1994). \textit{An Introduction to Category Theory, Category Theory Monads, and Their Relationship to Functional Programming}.
