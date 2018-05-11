@@ -296,7 +296,7 @@
     \end{tcolorbox}
     
     Unfortunately, the modified \textit{seq} operator will not work in practice. (Why? ask Peter) \\ \\ 
-    The monadic \textit{bind} operator can be used to define parsers of a different nature. For example, a \textbf{satisfy} combinator may be constructed as a function that takes a predicate as input and returns a parser that consumes the first element of a string if the predicate is true and fails if the predicate is false. In order to fulfill the required parsing behavior, the primitive parsers \textit{oneItem} and \textit{zero} mentioned in section 5.2 are necessary. Let's observe how the \textbf{satisfy} can be implemented: 
+    The monadic \textit{bind} operator can be used to define parsers of a different nature. For example, a \textbf{satisfy} combinator may be constructed as a function that takes a predicate as input and returns a parser that consumes the first element of a string if the predicate is true and fails if the predicate is false. In order to fulfill the required parsing behavior, the primitive parsers \textit{oneItem}, \textit{result} and \textit{zero} mentioned in section 5.2 are necessary. Let's observe how the \textbf{satisfy} can be implemented: 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
@@ -306,6 +306,8 @@
                                           else zero
     \end{lstlisting}
     \end{tcolorbox}
+    
+    The \textbf{satisfy} combinator will initially parse the first item of the input provided. Afterwards, through the \textit{bind} operator this value is passed as an input to the function taking the first character as an input and returning an if statement as an output. The if statement checks what the predicate returns. If the predicate is true the first value parsed and the unparsed input string are returned, otherwise the parser will fail and will return an empty list.  
     
     
     \subsubsection{Alternation}
