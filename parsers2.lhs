@@ -28,3 +28,6 @@
 
 > satisfy      :: (Char -> Bool) -> Parse Char
 > satisfy pred = oneItem `bind` \x -> if pred x then result x else zero 
+
+> singleChar  :: Char -> Parse Char 
+> singleChar a = satisfy (\b -> a == b) 
