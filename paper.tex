@@ -287,7 +287,15 @@
             [((\textcolor{green}{`r'}, \textcolor{green}{`e'}), \textcolor{red}{``ra"})]
         \end{center}
         
-    From the above example, it can be deduced that the outcome of the first parser can be sequentially consumed by the second parser and so on if other parsers are included. Hence, the \textit{bind} infix operator will dodge the complication introduced by the nested tuples. 
+    From the above example, it can be deduced that the outcome of the first parser can be sequentially consumed by the second parser and so on if other parsers are included. Hence, the \textit{bind} infix operator will dodge the complication introduced by the nested tuples. Consequently, the \textit{seq} can be defined using the \textit{bind} operator: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell]
+      p `seq` q = p `bind` \x -> q `bind` \y -> result (x, y)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    
     
     \subsubsection{Alternation}
      
