@@ -40,3 +40,15 @@
 
 > isuppercase :: Parse Char 
 > isuppercase  = satisfy (\a -> a >= 'A' && a <= 'Z')
+
+> parseTwoDigits :: Parse (Char, Char)
+> parseTwoDigits  = isdigit `bind` \x -> isdigit `bind` \y -> result (x, y)
+
+> parseTwoChars :: Char -> Char -> Parse (Char, Char)
+> parseTwoChars a b = singleChar a `bind` \x -> singleChar b `bind` \y -> result (x, y)
+
+> parseTwoUpperCase :: Parse (Char, Char)
+> parseTwoUpperCase  = isuppercase `bind` \x -> isuppercase `bind` \y -> result (x, y) 
+
+> parseTwoLowerCase :: Parse (Char, Char)
+> parseTwoLowerCase  = islowercase `bind` \x -> islowercase `bind` \y -> result (x, y) 
