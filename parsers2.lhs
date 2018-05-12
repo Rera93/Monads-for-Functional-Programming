@@ -25,8 +25,8 @@
 > parseTwoItems :: Parse (Char, Char)
 > parseTwoItems = oneItem `bind` \x -> oneItem `bind` \y -> result(x, y)  
 
-> seqq       :: Parse a -> Parse b -> Parse (a, b)
-> p `seqq` q = p `bind` \x -> q `bind` \y -> result(x, y) 
+> (>>>)       :: Parse a -> Parse b -> Parse (a, b)
+> p >>> q = p `bind` \x -> q `bind` \y -> result(x, y) 
 
 > satisfy      :: (Char -> Bool) -> Parse Char
 > satisfy pred = oneItem `bind` \x -> if pred x then result x else zero 
@@ -60,3 +60,13 @@
 
 > parseOneOrTwoItems :: Parse Char 
 > parseOneOrTwoItems  = parseOneItem +++ parseOneItem
+
+> (++++)     :: Parse a -> Parse a -> Parse a
+> p ++++ q  = first' (p +++ q)
+
+> first' :: Parse a -> Parse a 
+> first' p = \input -> case p input of 
+>                           []     -> []
+>                           (x:xs) -> [x]
+
+
