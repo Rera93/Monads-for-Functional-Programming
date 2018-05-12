@@ -326,6 +326,22 @@
     \end{lstlisting}
     \end{tcolorbox}
     
+    The names for each parser are speaking for themselves. Each of the above parsers will success in parsing the first character if the predicate takes an input for the satisfy combinartor is true. On the other hand, the parser will fail and return [ ]. 
+    
+    In conclusion, it is very important to comprehend that the monadic \textbf{bind} made possible the creation of \textbf{satisfy} and what followed as an extension of \textbf{satisfy}. However, this is not the end of the commodity that the \textbf{bind} operator provides. For instance, a new parser may be created to parse two digits or more if the predicate holds or to fail if it doesn't. 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell]
+      parseTwoDigits :: Parse (Char, Char)
+      parseTwoDigits  = isdigit `bind` \x -> isdigit 
+                                `bind` \y -> result(x,y)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    Applying this parser to an input string ``12rera" will succeed with the result [((`1', `2'), ``rera")] whereas in case of an input ``1rera" will fail and return [ ] since the second parsed character \textit{`r'} is not a digit. 
+    
+    
+    
     
     \subsubsection{Alternation}
      
