@@ -1,3 +1,5 @@
+{-# LANGUAGE UnicodeSyntax #-}
+
 > import Data.Char
 > import Data.Ord
 
@@ -52,3 +54,9 @@
 
 > parseTwoLowerCase :: Parse (Char, Char)
 > parseTwoLowerCase  = islowercase `bind` \x -> islowercase `bind` \y -> result (x, y) 
+
+> (+++)       :: Parse a -> Parse a -> Parse a
+> (p +++ q) input = (p input ++ q input)
+
+> parseOneOrTwoItems :: Parse Char 
+> parseOneOrTwoItems  = parseOneItem +++ parseOneItem
