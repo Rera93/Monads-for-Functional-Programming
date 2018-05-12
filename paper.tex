@@ -295,7 +295,6 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    Unfortunately, the modified \textit{seq} operator will not work in practice. (Why? ask Peter) \\ \\ 
     The monadic \textit{bind} operator can be used to define parsers of a different nature. For example, a \textbf{satisfy} combinator may be constructed as a function that takes a predicate as input and returns a parser that consumes the first element of a string if the predicate is true and fails if the predicate is false. In order to fulfill the required parsing behavior, the primitive parsers \textit{oneItem}, \textit{result} and \textit{zero} mentioned in section 5.2 are necessary. Let's observe how the \textbf{satisfy} can be implemented: 
     
     \begin{tcolorbox}
@@ -308,6 +307,14 @@
     \end{tcolorbox}
     
     The \textbf{satisfy} combinator will initially parse the first item of the input provided. Afterwards, through the \textit{bind} operator this value is passed as an input to the function taking the first character as an input and returning an if statement as an output. The if statement checks what the predicate returns. If the predicate is true the first value parsed and the unparsed input string are returned through the \textbf{result} parser, otherwise the parser will fail and will return an empty list through the \textbf{zero} parser.  \\ \\
+    A benefit of using the monadic approach to define parsers is the support provided by the \textit{monad comprehension syntax} \cite{bringMonadComprehension}. Monad comprehensions will promote readability of parsers. Hence, the satisfy can be transformed into the following structure: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell]
+      satisfy pred = [x | x <- oneItem, pred x]
+    \end{lstlisting}
+    \end{tcolorbox}
+    
     The \textbf{satisfy} parser combinator can be easily extended to add precision in parsers. Hence, parsers like \textbf{singleChar}, \textbf{isdigit}. \textbf{islowercase} and \textbf{isuppercase} can be defined:
     
     \begin{tcolorbox}
@@ -326,7 +333,7 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    The names for each parser are speaking for themselves. Each of the above parsers will success in parsing the first character if the predicate takes an input for the satisfy combinartor is true. On the other hand, the parser will fail and return [ ]. 
+    The names for each parser are speaking for themselves. Each of the above parsers will success in parsing the first character if the predicate takes an input for the satisfy combinator is true. On the other hand, the parser will fail and return [ ]. 
     
     In conclusion, it is very important to comprehend that the monadic \textbf{bind} made possible the creation of \textbf{satisfy} and what followed as an extension of \textbf{satisfy}. However, this is not the end of the commodity that the \textbf{bind} operator provides. For instance, a new parser may be created to parse two digits or more if the predicate holds or to fail if it doesn't. 
     
@@ -338,7 +345,8 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    Applying this parser to an input string ``12rera" will succeed with the result [((`1', `2'), ``rera")] whereas in case of an input ``1rera" will fail and return [ ] since the second parsed character \textit{`r'} is not a digit. 
+    Applying this parser to an input string ``12rera" will succeed with the result [((`1', `2'), ``rera")] whereas in case of an input ``1rera" will fail and return [ ] since the second parsed character \textit{`r'} is not a digit. \\ \\
+    Nevertheless, it would not be convenient to create new parsers each time more items need to be parsed. For that reason, \textit{recursive parsers} are desired. Additionally, recursive operation must be terminated at some point. In order to achieve or not termination, the \textbf{alternation} combinator has to be used but more on that on the next subsection.
     
     
     
@@ -356,6 +364,8 @@
     Walder, P. \textit{Monads for functional programming}, section 5.2. University of Glasgow. 
     \bibitem{pearls}
     Hutton, G. and Meijer, E. \textit{Monadic Parsing in Haskell}. University of Nottingham.
+    \bibitem{bringMonadComprehension}
+    Giorgidze. G, Grust. T, Schweinsberg. N, and Weijers. J. \textit{Bring Back Monad Comprehensions}. Wilhelm-Schickard-Institut fur Informatik and Eberhard Karls Universitat Tubingen.
     \end{thebibliography}
     \end{document}
     

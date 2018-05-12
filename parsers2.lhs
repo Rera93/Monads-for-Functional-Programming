@@ -73,4 +73,5 @@
 > isletter  = islowercase ++++ isuppercase
 
 > isword :: Parse String 
-> isword  = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
+> isword  = neWord ++++ result ""
+>   where neWord = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
