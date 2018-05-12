@@ -307,7 +307,24 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    The \textbf{satisfy} combinator will initially parse the first item of the input provided. Afterwards, through the \textit{bind} operator this value is passed as an input to the function taking the first character as an input and returning an if statement as an output. The if statement checks what the predicate returns. If the predicate is true the first value parsed and the unparsed input string are returned, otherwise the parser will fail and will return an empty list.  
+    The \textbf{satisfy} combinator will initially parse the first item of the input provided. Afterwards, through the \textit{bind} operator this value is passed as an input to the function taking the first character as an input and returning an if statement as an output. The if statement checks what the predicate returns. If the predicate is true the first value parsed and the unparsed input string are returned through the \textbf{result} parser, otherwise the parser will fail and will return an empty list through the \textbf{zero} parser.  \\ \\
+    The \textbf{satisfy} parser combinator can be easily extended to add precision in parsers. Hence, parsers like \textbf{singleChar}, \textbf{isdigit}. \textbf{islowercase} and \textbf{isuppercase} can be defined:
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell]
+      singleChar   :: Char -> Parse Char
+      singleChar a  = satisfy (\b -> a == b)
+      
+      isdigit :: Parse Char
+      isdigit  = satisfy (\a -> a >= '0' && a <= '9')
+      
+      islowercase :: Parse Char
+      islowercase  = satisfy (\a -> a >= 'a' && a <= 'z')
+      
+      isuppercase :: Parse Char 
+      isuppercase  = satisfy (\a -> a >= 'A' && a <= 'Z')
+    \end{lstlisting}
+    \end{tcolorbox}
     
     
     \subsubsection{Alternation}
