@@ -30,4 +30,13 @@
 > satisfy pred = oneItem `bind` \x -> if pred x then result x else zero 
 
 > singleChar  :: Char -> Parse Char 
-> singleChar a = satisfy (\b -> a == b) 
+> singleChar a = satisfy (\b -> a == b)
+
+> isdigit :: Parse Char
+> isdigit = satisfy (\a -> a >= '0' && a <= '9') 
+
+> islowercase :: Parse Char 
+> islowercase  = satisfy (\a -> a >= 'a' && a <= 'z')
+
+> isuppercase :: Parse Char 
+> isuppercase  = satisfy (\a -> a >= 'A' && a <= 'Z')
