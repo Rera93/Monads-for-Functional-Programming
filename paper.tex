@@ -350,6 +350,15 @@
     \subsubsection{Alternation}
     
     In this subsection, the attention will be redirected towards producing alternation in parsers. Additionally, it will be assumed that the parser will exhibit non-deterministic behavior. Hence, employing two parsers in alternation will demand the initial to be applied to the input and if it fails to parse anything then the consecutive parser will be applied to the same input. In order to achieve this attitude from the initial parser, the primitive \textit{zero} parser will be exploited. Recalling from section 5.2, the \textit{zero} parser will take any input and return absolutely nothing. The implementation of 2 parsers being alternated together will be represented by the operator (\texttt{+++}). Have a look at the following snippet to understand how alternation is attained.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell]
+      (+++) :: Parse a -> Parse a -> Parse a
+      p +++ q  = \input -> (p input ++ q input)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    
     \begin{thebibliography}{9}
     \bibitem{categorytheory} 
     M. D. Hill, Jonathan & Clarke, Keith. (1994). \textit{An Introduction to Category Theory, Category Theory Monads, and Their Relationship to Functional Programming}.
