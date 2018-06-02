@@ -284,7 +284,7 @@
     The following example will better illustrate the outcome when parsing a string:
        \begin{center}
             \textbf{ghci$>$} parseTwoItems \textcolor{red}{``rera"} \\
-            [((\textcolor{green}{`r'}, \textcolor{green}{`e'}), \textcolor{red}{``ra"})]
+            $\big[$((\textcolor{green}{`r'}, \textcolor{green}{`e'}), \textcolor{red}{``ra"})$\big]$
         \end{center}
         
     From the above example, it can be deduced that the outcome of the first parser can be sequentially consumed by the second parser and so on if other parsers are included. Hence, the \textit{bind} infix operator will dodge the complication introduced by the nested tuples. Consequently, the \textit{seq} can be defined using the \textit{bind} operator: 
@@ -357,9 +357,23 @@
       p +++ q  = \input -> (p input ++ q input)
     \end{lstlisting}
     \end{tcolorbox}
+    \noindent The nature of the plus parser can be illustrated by defining the \textbf{islower\_r} parser which alternated two of the already defined parsers from the previous subsection: \textbf{islowercase} and \textbf{singleChar}.
     
-    \noindent At the moment, even though the first parser will succeed in parsing the input, the second parser will always be applied to the same input. This is not the desired behaviour from alternation of parsers. The goal is to allow the second parser to parse the input string only if the initial parser has failed in doing so. Additionally, if the first parser succeeds in parsing the input, the program is terminated and the parsed result is returned. This approach will introduce a deterministic behavior in the alternation of parsers. How can this be achieved? In order to achieve this attitude between the initial parser and the latter parser, the primitive \textit{zero} parser will be exploited. Recalling from section 5.2, the \textit{zero} parser will take any input and return absolutely nothing.
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+        islower_r :: Parse Char
+        islower_r  = islowercase +++ singleChar `r'
+    \end{lstlisting}
+    \end{tcolorbox}
     
+    \noindent Now, let's apply the \textbf{islower\_r} parser to an input string that contains `r' as it's first character.
+    
+    \begin{center}
+            \textbf{ghci$>$} islower\_r \textcolor{red}{``rera"} \\
+            $\big[$(\textcolor{green}{`r'}, \textcolor{red}{``era"}), (\textcolor{green}{`r'}, \textcolor{red}{``era"})$\big]$
+        \end{center}
+    
+     \noindent At the moment, even though the first parser will succeed in parsing the input, the second parser will always be applied to the same input.This is not the desired behaviour from alternation of parsers. The goal is to allow the second parser to parse the input string only if the initial parser has failed in doing so. Additionally, if the first parser succeeds in parsing the input, the program is terminated and the parsed result is returned. This approach will introduce a deterministic behavior in the alternation of parsers. How can this be achieved? 
     
     
     \subsection{Conclusions}
