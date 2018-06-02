@@ -56,8 +56,10 @@
 > parseTwoLowerCase  = islowercase `bind` \x -> islowercase `bind` \y -> result (x, y) 
 
 > (+++)       :: Parse a -> Parse a -> Parse a
-> p +++ q = \input -> (p input ++ q input)
-
+> p +++ q = \input -> case p input of
+>                         []                -> q input
+>                         [(parsed, left_to_parse)] ->  [(parsed, left_to_parse)]     
+                          
 > islower_r :: Parse Char
 > islower_r  = singleChar 'r' +++ islowercase
 
