@@ -58,8 +58,8 @@
 > (+++)       :: Parse a -> Parse a -> Parse a
 > p +++ q = \input -> (p input ++ q input)
 
-> parseOneOrTwoItems :: Parse Char 
-> parseOneOrTwoItems  = parseOneItem +++ parseOneItem
+> islower_r :: Parse Char
+> islower_r  = singleChar 'r' +++ islowercase
 
 > (++++)     :: Parse a -> Parse a -> Parse a
 > p ++++ q  = first' (p +++ q)
@@ -70,7 +70,7 @@
 >                           (x:xs) -> [x]
 
 > isletter :: Parse Char
-> isletter  = islowercase ++++ isuppercase
+> isletter  = isuppercase ++++ islowercase
 
 > isword :: Parse String 
 > isword  = neWord ++++ result ""
