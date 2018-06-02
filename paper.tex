@@ -390,7 +390,29 @@
             $\big[$(\textcolor{green}{`r'}, \textcolor{red}{``era"}), (\textcolor{green}{`r'}, \textcolor{red}{``era"})$\big]$
         \end{center}
     
-     \noindent The \textbf{islower\_r} parser is producing duplicates inside the list while just one of the duplicates is necessary to be displayed. At the moment, even though the first parser will succeed in parsing the input, the second parser will always be applied to the same input.This is not the desired behaviour from alternation of parsers. The goal is to allow the second parser to parse the input string only if the initial parser has failed in doing so. Additionally, if the first parser succeeds in parsing the input, the program is terminated and the parsed result is returned. How can the \textbf{plus} parser be altered so that it can introduce this deterministic behavior? \\ \\ 
+     \noindent The \textbf{islower\_r} parser is producing duplicates inside the list while just one of the duplicates is necessary to be displayed. At the moment, even though the first parser will succeed in parsing the input, the second parser will always be applied to the same input.This is not the desired behaviour from alternation of parsers. The undesired behaviour is intensified by the \textbf{isword} parser which is defined below:
+     
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+        isword :: Parse String
+        isword = word ++ result ""
+                   where word = isletter `bind` \x -> isword 
+                                         `bind` \xs -> result (x:xs)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent For example let's apply the \textbf{isword} parser to an input string.
+    
+    \begin{center}
+            \textbf{ghci$>$} isword \textcolor{red}{``rera"} \\
+               $\big[$(\textcolor{green}{`rera'}, \textcolor{red}{``"}), (\textcolor{green}{`rer'}, \textcolor{red}{``a"})
+            (\textcolor{green}{`re'}, \textcolor{red}{``ra"})
+            (\textcolor{green}{`r'}, \textcolor{red}{``era"})
+            (\textcolor{green}{`'}, \textcolor{red}{``rera"})$\big]$
+        \end{center}
+        
+    \noindent As it can be seen the behavior that the \textbf{isword} parser demonstrates is not as expected. The \textbf{isword} parser is supposed to parse an entire string, thus the only relevant output to be awaited from \textbf{isword ``rera"} is \textbf{[(``rera", ``")]}. \\ \\
+      In order to achieve the expected behaviour some changes have to be made to the \textbf{plus} parser. The end goal is to allow the consequent parser to parse the input string only if the initial parser has failed in doing so. Additionally, if the initial parser succeeds in parsing the input, the program is terminated and the parsed result is returned. How can the \textbf{plus} parser be altered so that it can introduce this deterministic behavior? \\ \\ 
       One way to transform the \textbf{plus} parser is by applying the \textit{case of} notation on the output that the first parser \textit{p} produces when applied to the input string. In case, the parser \textit{p} when eating the input string returns a parsed value together with the yet to be parser string then the \textbf{plus} parser terminates and returns the mentioned result. However, if the parser \textit{p} return an empty list after parsing the input string then and only then the second parser \textit{q} will be applied to same input string as parser \textit{p}. The implementation of the transformed \textbf{plus} parser is presented below:
      
     \begin{tcolorbox}
@@ -411,6 +433,8 @@
                                          Nothing -> q input
     \end{lstlisting}
     \end{tcolorbox}
+    
+    Therefore, both the \textit{List} and the \textit{Maybe} monad in combination with \textit{case of} notation helped in upgrading the behavior of the \textbf{plus} parser. 
     
     
     \subsection{Conclusions}
