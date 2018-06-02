@@ -357,7 +357,24 @@
       p +++ q  = \input -> (p input ++ q input)
     \end{lstlisting}
     \end{tcolorbox}
-    \noindent The nature of the plus parser can be illustrated by defining the \textbf{islower\_r} parser which alternated two of the already defined parsers from the previous subsection: \textbf{islowercase} and \textbf{singleChar}.
+    \noindent The nature of the plus parser can be illustrated by defining the \textbf{isletter} parser which alternates two of the already defined parsers from the previous subsection: \textbf{islowercase} and \textbf{isuppercase}.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+        isletter :: Parse Char
+        isletter  = islowercase +++ isuppercase
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{isletter} parser will parse the first character of input string if it is a lowercase or an uppercase letter. How does it accomplish this? Firstly, it will apply parser \textbf{islowercase} to the input string and yield a tuple with resulting parsed character together with remaining not parsed input string. Secondly, it will apply the parser \textbf{isuppercase} to the same input string and return a tuple containing the resulting  parsed character together with the yet to be parsed input string. Finally, it will concatenate the resulting tuples from \textbf{islowercase} and \textbf{isuppercase} parsers into one list. As shown from the example below, the \textbf{isletter} parser is exhibiting the correct behavior by just returning the parsed character is it is a letter.
+    
+    \begin{center}
+            \textbf{ghci$>$} isletter \textcolor{red}{``rera"} \\
+            $\big[$(\textcolor{green}{`r'}, \textcolor{red}{``era"})$\big]$
+    \end{center}
+    
+    \noindent Actually, the resulting outcome is the output produced by the \textbf{islowercase} parser while the \textbf{isuppercase} parser returns an empty list. If the \textbf{isuppercase} parser returned a non empty list , the resulting output would be appended to the output of the \textbf{islowercase} parser, thus by producing some ambiguous behavior. In other words, there is an issue with the non-deterministic behavior of the \textbf{plus} parser. \\ \\
+    The nature of this complication can be clearly represented by the \textbf{islower\_r} parser which alternates two of the already defined parsers from the previous subsection: \textbf{islowercase} and \textbf{singleChar}. 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -366,7 +383,7 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent Now, let's apply the \textbf{islower\_r} parser to an input string that contains `r' as it's first character.
+    \noindent The role that the \textbf{islower\_r} exhibits is not very useful in parsing terms but in this case it is essential in exposing the hidden inadequate behavior of the \textbf{plus} parser. Now, let's apply the \textbf{islower\_r} parser to an input string that contains `r' as it's first character to observe what happens.
     
     \begin{center}
             \textbf{ghci$>$} islower\_r \textcolor{red}{``rera"} \\
@@ -384,7 +401,7 @@
     \end{lstlisting}
     \end{tcolorbox}
      
-     With this modification, some deterministic behaviour has be inserted in the \textbf{plus} parser. 
+     With this modification, some deterministic behaviour has been inserted in the \textbf{plus} parser. 
     
     
     \subsection{Conclusions}
