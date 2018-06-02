@@ -373,7 +373,17 @@
             $\big[$(\textcolor{green}{`r'}, \textcolor{red}{``era"}), (\textcolor{green}{`r'}, \textcolor{red}{``era"})$\big]$
         \end{center}
     
-     \noindent At the moment, even though the first parser will succeed in parsing the input, the second parser will always be applied to the same input.This is not the desired behaviour from alternation of parsers. The goal is to allow the second parser to parse the input string only if the initial parser has failed in doing so. Additionally, if the first parser succeeds in parsing the input, the program is terminated and the parsed result is returned. This approach will introduce a deterministic behavior in the alternation of parsers. How can this be achieved? 
+     \noindent The \textbf{islower\_r} parser is producing duplicates inside the list while just one of the duplicates is necessary to be displayed. At the moment, even though the first parser will succeed in parsing the input, the second parser will always be applied to the same input.This is not the desired behaviour from alternation of parsers. The goal is to allow the second parser to parse the input string only if the initial parser has failed in doing so. Additionally, if the first parser succeeds in parsing the input, the program is terminated and the parsed result is returned. How can the \textbf{plus} parser be altered so that it can introduce this deterministic behavior? \\ \\ 
+     
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+        p +++ q = \input -> case p input of
+                              [(val, input')] -> [(val, input')]
+                                           [] -> q input
+    \end{lstlisting}
+    \end{tcolorbox}
+     
+     
     
     
     \subsection{Conclusions}
