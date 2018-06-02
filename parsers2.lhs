@@ -59,7 +59,11 @@
 > p +++ q = \input -> case p input of
 >                         []                -> q input
 >                         [(parsed, left_to_parse)] ->  [(parsed, left_to_parse)]     
-                          
+
+
+> (+++++)    :: Parse a -> Parse a -> Parse a
+> p +++++ q = \input -> (p input ++ q input) 
+
 > islower_r :: Parse Char
 > islower_r  = singleChar 'r' +++ islowercase
 
@@ -75,5 +79,5 @@
 > isletter  = isuppercase ++++ islowercase
 
 > isword :: Parse String 
-> isword  = neWord ++++ result ""
+> isword  = neWord +++++ result ""
 >   where neWord = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
