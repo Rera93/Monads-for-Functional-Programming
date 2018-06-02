@@ -401,7 +401,16 @@
     \end{lstlisting}
     \end{tcolorbox}
      
-     With this modification, some deterministic behaviour has been inserted in the \textbf{plus} parser. 
+     \noindent With this modification, some deterministic behaviour has been inserted in the \textbf{plus} parser thus by fixing the sketchy behavior that was being manifested before. \\ \\
+     Another way to customize the \textbf{plus} parser is by utilizing the Maybe monad. The following snippet of Haskell code shows how the Just and Nothing constructors can be integrated in the \textbf{plus} parser:
+     
+     \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+        p +++ q = \input -> case p input of
+                              Just (val, input') -> Just (val, input')
+                                         Nothing -> q input
+    \end{lstlisting}
+    \end{tcolorbox}
     
     
     \subsection{Conclusions}
