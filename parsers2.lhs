@@ -81,3 +81,10 @@
 > isword :: Parse String 
 > isword  = neWord +++++ result ""
 >   where neWord = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
+
+ data AST = Print String | Get String
+
+> is_print  :: Parse (Char, Char, Char, Char, Char)
+> is_print = singleChar 'p' `bind` \p -> singleChar 'r' `bind` \r -> singleChar 'i' `bind` \i -> singleChar 'n' `bind` \n -> singleChar 't' `bind` \t -> result (p, r, i, n, t)
+
+> 
