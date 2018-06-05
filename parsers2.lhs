@@ -83,6 +83,7 @@
 >   where neWord = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
 
 > data AST = DeclarationInt String Int 
+>          | DeclarationString String String
 >          | Print String
 >          | Get String deriving (Show)
 
@@ -110,3 +111,9 @@
 
 > parse_declaration_int :: Parse AST 
 > parse_declaration_int = is_integer `bind` \integer -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> is_number `bind` \num -> result (DeclarationInt id (read num :: Int) )
+
+> is_string :: Parse String 
+> is_string  = singleChar 'S' `bind` \s -> singleChar 't' `bind` \t -> singleChar 'r' `bind` \r -> singleChar 'i' `bind` \i -> singleChar 'n' `bind` \n -> singleChar 'g' `bind` \g -> result [s, t, r, i, n, g]  
+
+ parse_declaration_string :: Parse AST 
+ parse_declaration_string = is
