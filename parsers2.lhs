@@ -115,5 +115,5 @@
 > is_string :: Parse String 
 > is_string  = singleChar 'S' `bind` \s -> singleChar 't' `bind` \t -> singleChar 'r' `bind` \r -> singleChar 'i' `bind` \i -> singleChar 'n' `bind` \n -> singleChar 'g' `bind` \g -> result [s, t, r, i, n, g]  
 
- parse_declaration_string :: Parse AST 
- parse_declaration_string = is
+> parse_declaration_string :: Parse AST 
+> parse_declaration_string = is_string `bind` \string -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> singleChar '\"' `bind` \startQuote -> isword `bind` \word -> singleChar '\"' `bind` \endQuoute -> result (DeclarationString id (startQuote : word ++ [endQuoute]) )
