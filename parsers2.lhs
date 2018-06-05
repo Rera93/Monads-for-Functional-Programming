@@ -116,11 +116,11 @@
 > is_string  = singleChar 'S' `bind` \s -> singleChar 't' `bind` \t -> singleChar 'r' `bind` \r -> singleChar 'i' `bind` \i -> singleChar 'n' `bind` \n -> singleChar 'g' `bind` \g -> result [s, t, r, i, n, g]  
 
 > is_any_char :: Parse Char 
-> is_any_char  = satisfy (\a -> a >= ' ' && a <= '~' )
+> is_any_char  = satisfy (\a -> (a >= ' ' && a <= '~') && a /= '\\' && a /= '\"' )
 
 > is_any_string :: Parse String 
 > is_any_string  = ne_string +++ result ""
 >  where ne_string = is_any_char `bind` \x -> is_any_string `bind` \xs -> result (x:xs)
 
 > parse_declaration_string :: Parse AST 
-> parse_declaration_string = is_string `bind` \string -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> singleChar '"' `bind` \startQuote -> isword `bind` \word -> singleChar '"' `bind` \endQuoute -> result (DeclarationString id (startQuote : word ++ [endQuoute]) )
+> parse_declaration_string = is_string `bind` \string -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> singleChar '\"' `bind` \startQuote -> isword `bind` \word -> singleChar '\"' `bind` \endQuoute -> result (DeclarationString id (startQuote : word ++ [endQuoute]) )
