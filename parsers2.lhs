@@ -82,7 +82,7 @@
 > isword  = neWord +++ result ""
 >   where neWord = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
 
-> data AST = DeclarationInt String Int
+> data AST = DeclarationInt String Int 
 >          | Print String
 >          | Get String deriving (Show)
 
@@ -105,8 +105,8 @@
 > is_integer  = singleChar 'i' `bind` \i -> singleChar 'n' `bind` \n -> singleChar 't' `bind` \t -> singleChar 'e' `bind` \e -> singleChar 'g' `bind` \g -> singleChar 'e' `bind` \e1 -> singleChar 'r' `bind` \r -> result [i, n, t, e, g, e1, r]
 
 > is_number :: Parse String
-> is_number  = isdigit `bind` \x -> is_number `bind` \xs -> result (x:xs) +++ result ""
+> is_number  = ne_number +++ result ""
+>  where ne_number = isdigit `bind` \x -> is_number `bind` \xs -> result (x:xs)
 
-
- parse_declaration_int :: Parse AST 
- parse_declaration_int = is_integer `bind` \integer -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq ->  
+> parse_declaration_int :: Parse AST 
+> parse_declaration_int = is_integer `bind` \integer -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> is_number `bind` \num -> result (DeclarationInt id (read num :: Int) )
