@@ -85,7 +85,8 @@
 > data AST = DeclarationInt String Int 
 >          | DeclarationString String String
 >          | Print String
->          | Get String deriving (Show)
+>          | Get String
+>          | AssignmentVar String String deriving (Show)
 
 > parse_print :: Parse AST 
 > parse_print = is_print `bind` \print -> singleChar ' ' `bind` \space -> singleChar '(' `bind` \open -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Print var) 
@@ -100,7 +101,7 @@
 > is_get  = singleChar 'g' `bind` \g -> singleChar 'e' `bind` \e -> singleChar 't' `bind` \t -> result [g, e, t] 
 
 > my_parser :: Parse AST
-> my_parser  = parse_print +++ parse_get ++ parse_declaration_int ++ parse_declaration_string
+> my_parser  = parse_print +++ parse_get +++ parse_declaration_int +++ parse_declaration_string
 
 > is_integer :: Parse String 
 > is_integer  = singleChar 'i' `bind` \i -> singleChar 'n' `bind` \n -> singleChar 't' `bind` \t -> singleChar 'e' `bind` \e -> singleChar 'g' `bind` \g -> singleChar 'e' `bind` \e1 -> singleChar 'r' `bind` \r -> result [i, n, t, e, g, e1, r]
@@ -124,3 +125,6 @@
 
 > parse_declaration_string :: Parse AST 
 > parse_declaration_string = is_string `bind` \string -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> singleChar '\'' `bind` \startQuote -> isword `bind` \word -> singleChar '\'' `bind` \endQuoute -> result (DeclarationString id (startQuote : word ++ [endQuoute]) )
+
+> parse_assignment_var :: Parse AST
+> parse_assignment_var  = isword `bind` \leftvar ->singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \rightvar -> result (AssignmentVar leftvar rightvar) 
