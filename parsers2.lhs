@@ -82,11 +82,15 @@
 > isword  = neWord +++ result ""
 >   where neWord = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
 
+> data Operator = Multi | Div | Plus | Minus deriving (Show)
+ 
+
 > data AST = DeclarationInt String Int 
 >          | DeclarationString String String
 >          | Print String
 >          | Get String
->          | AssignmentVar String String deriving (Show)
+>          | AssignmentVar String String
+>          | AssignmentOp String String Operator String deriving (Show)
 
 > parse_print :: Parse AST 
 > parse_print = is_print `bind` \print -> singleChar ' ' `bind` \space -> singleChar '(' `bind` \open -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Print var) 
@@ -126,5 +130,21 @@
 > parse_declaration_string :: Parse AST 
 > parse_declaration_string = is_string `bind` \string -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> singleChar '\'' `bind` \startQuote -> isword `bind` \word -> singleChar '\'' `bind` \endQuoute -> result (DeclarationString id (startQuote : word ++ [endQuoute]) )
 
+ is_space_or_not :: Parse Char
+ is_space_or_not  = singleChar ' ' +++ zero 
+
 > parse_assignment_var :: Parse AST
-> parse_assignment_var  = isword `bind` \leftvar ->singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \rightvar -> result (AssignmentVar leftvar rightvar) 
+> parse_assignment_var  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \rightvar -> result (AssignmentVar leftvar rightvar) 
+
+> is_arith_op :: Parse Char 
+> is_arith_op  = singleChar '*' +++ singleChar '/' +++ singleChar '+' +++ singleChar '-'
+
+> parse_assignment_op :: Parse AST
+> parse_assignment_op  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar (recognize_op arithop) rightopvar)  
+
+> recognize_op       :: Char -> Operator
+> recognize_op input  = case input of 
+>                          '*' -> Multi
+>                          '/' -> Div
+>                          '+' -> Plus
+>                          '-' -> Minus
