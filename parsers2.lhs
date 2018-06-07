@@ -174,3 +174,9 @@
 
 > is_while :: Parse String
 > is_while  = singleChar 'w' `bind` \w -> singleChar 'h' `bind` \h -> singleChar 'i' `bind` \i -> singleChar 'l' `bind` \l -> singleChar 'e' `bind` \e -> result [w, h, i, l, e]
+
+> is_do :: Parse String 
+> is_do  = singleChar 'd' `bind` \d -> singleChar 'o' `bind` \o -> result [d, o]
+
+> is_od :: Parse String 
+> is_od  = singleChar 'o' `bind` \o -> singleChar 'd' `bind` \d -> result [o, d]
