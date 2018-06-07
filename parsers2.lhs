@@ -151,5 +151,11 @@
 > is_minus_op :: Parse Operator
 > is_minus_op  = singleChar '-' `bind` \minus -> result Minus
 
+> is_greaterthan_op :: Parse Operator 
+> is_greaterthan_op  = singleChar '>' `bind` \greater -> result GreaterThan
+
+> is_greaterthan_eq_op :: Parse Operator 
+> is_greaterthan_eq_op  = singleChar '>' `bind` \greater -> singleChar '=' `bind` \eq -> result GreaterThanOrEqual
+
 > parse_assignment_op :: Parse AST
 > parse_assignment_op  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
