@@ -82,7 +82,7 @@
 > isword  = neWord +++ result ""
 >   where neWord = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
 
-> data Operator = Multi | Div | Plus | Minus deriving (Show)
+> data Operator = Multi | Div | Plus | Minus | Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual deriving (Show)
  
 
 > data AST = DeclarationInt String Int 
@@ -130,21 +130,26 @@
 > parse_declaration_string :: Parse AST 
 > parse_declaration_string = is_string `bind` \string -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> singleChar '\'' `bind` \startQuote -> isword `bind` \word -> singleChar '\'' `bind` \endQuoute -> result (DeclarationString id (startQuote : word ++ [endQuoute]) )
 
- is_space_or_not :: Parse Char
- is_space_or_not  = singleChar ' ' +++ zero 
+> is_space_or_not :: Parse Char
+> is_space_or_not  = singleChar ' ' +++ zero 
 
 > parse_assignment_var :: Parse AST
-> parse_assignment_var  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \rightvar -> result (AssignmentVar leftvar rightvar) 
+> parse_assignment_var  = isword `bind` \leftvar -> is_space_or_not `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> is_space_or_not `bind` \space1 -> isword `bind` \rightvar -> result (AssignmentVar leftvar rightvar) 
 
-> is_arith_op :: Parse Char 
-> is_arith_op  = singleChar '*' +++ singleChar '/' +++ singleChar '+' +++ singleChar '-'
+> is_arith_op :: Parse Operator 
+> is_arith_op  =  is_multi_op +++ is_div_op +++ is_plus_op +++ is_minus_op
+
+> is_multi_op :: Parse Operator
+> is_multi_op  = singleChar '*' `bind` \multi -> result Multi
+
+> is_div_op :: Parse Operator
+> is_div_op = singleChar '/' `bind` \div -> result Div
+
+> is_plus_op :: Parse Operator
+> is_plus_op  = singleChar '+' `bind` \plus -> result Plus
+
+> is_minus_op :: Parse Operator
+> is_minus_op  = singleChar '-' `bind` \minus -> result Minus
 
 > parse_assignment_op :: Parse AST
-> parse_assignment_op  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar (recognize_op arithop) rightopvar)  
-
-> recognize_op       :: Char -> Operator
-> recognize_op input  = case input of 
->                          '*' -> Multi
->                          '/' -> Div
->                          '+' -> Plus
->                          '-' -> Minus
+> parse_assignment_op  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
