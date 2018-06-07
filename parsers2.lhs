@@ -163,5 +163,11 @@
 > is_lessthan_eq_op :: Parse Operator 
 > is_lessthan_eq_op  = singleChar '<' `bind` \less -> singleChar '=' `bind` \eq -> result LessThanOrEqual
 
+> is_eq_op :: Parse Operator
+> is_eq_op  = singleChar '=' `bind` \eq -> result Equal
+
+> is_not_eq_op :: Parse Operator
+> is_not_eq_op  = singleChar '!' `bind \not -> singleChar '=' `bind` \eq -> result NotEqual
+
 > parse_assignment_op :: Parse AST
 > parse_assignment_op  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
