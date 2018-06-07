@@ -137,7 +137,7 @@
 > parse_assignment_var  = isword `bind` \leftvar -> is_space_or_not `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> is_space_or_not `bind` \space1 -> isword `bind` \rightvar -> result (AssignmentVar leftvar rightvar) 
 
 > is_arith_op :: Parse Operator 
-> is_arith_op  =  is_multi_op +++ is_div_op +++ is_plus_op +++ is_minus_op
+> is_arith_op  =  is_multi_op +++ is_div_op +++ is_plus_op +++ is_minus_op +++ is_greaterthan_eq_op +++ is_greaterthan_op +++ is_lessthan_eq_op +++ is_lessthan_op +++ is_eq_op +++ is_not_eq_op
 
 > is_multi_op :: Parse Operator
 > is_multi_op  = singleChar '*' `bind` \multi -> result Multi
@@ -164,10 +164,10 @@
 > is_lessthan_eq_op  = singleChar '<' `bind` \less -> singleChar '=' `bind` \eq -> result LessThanOrEqual
 
 > is_eq_op :: Parse Operator
-> is_eq_op  = singleChar '=' `bind` \eq -> result Equal
+> is_eq_op  = singleChar '=' `bind` \eq1 -> singleChar '=' `bind` \eq2 -> result Equal
 
 > is_not_eq_op :: Parse Operator
-> is_not_eq_op  = singleChar '!' `bind \not -> singleChar '=' `bind` \eq -> result NotEqual
+> is_not_eq_op  = singleChar '!' `bind` \not -> singleChar '=' `bind` \eq -> result NotEqual
 
 > parse_assignment_op :: Parse AST
 > parse_assignment_op  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
