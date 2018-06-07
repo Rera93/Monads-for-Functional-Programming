@@ -84,6 +84,8 @@
 
 > data Operator = Multi | Div | Plus | Minus | Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual deriving (Show) 
 
+> data Condition = Condition String Operator String deriving (Show)
+
 > data AST = DeclarationInt String Int 
 >          | DeclarationString String String
 >          | Print String
@@ -182,7 +184,7 @@
 > is_od  = singleChar 'o' `bind` \o -> singleChar 'd' `bind` \d -> result [o, d]
 
  parse_while_loop :: Parse AST
- parse_while_loop  = is_while `bind` \while -> singleChar '(' `bind` \open -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> is_do `bind` \do -> singleChar ' ' `bind` \space -> my_parser `bind` \body -> singleChar ' ' `bind` \space1 -> is_od `bind` \od -> result (WhileLoop is_loop_condition [my_parser])
+ parse_while_loop  = is_while `bind` \while -> singleChar '(' `bind` \open -> isword `bind` \leftside ->singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> singleChar ')' `bind` \close -> is_do `bind` \opendo -> singleChar ' ' `bind` \space -> my_parser `bind` \body -> singleChar ' ' `bind` \space1 -> is_od `bind` \closedo -> result (WhileLoop leftside operator rightside [my_parser])
 
-> is_loop_condition :: Parse (String, Operator, String)
-> is_loop_condition  = isword `bind` \leftside ->singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (leftside, operator, rightside)  
+> is_loop_condition :: Parse Condition
+> is_loop_condition  = isword `bind` \leftside -> singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (Condition leftside operator rightside)  
