@@ -171,3 +171,6 @@
 
 > parse_assignment_op :: Parse AST
 > parse_assignment_op  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
+
+> is_while :: Parse String
+> is_while  = singleChar 'w' `bind` \w -> singleChar 'h' `bind` \h -> singleChar 'i' `bind` \i -> singleChar 'l' `bind` \l -> singleChar 'e' `bind` \e -> result [w, h, i, l, e]
