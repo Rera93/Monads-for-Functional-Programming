@@ -92,7 +92,7 @@
 >          | Get String
 >          | AssignmentVar String String
 >          | AssignmentOp String String Operator String 
->          | WhileLoop String Operator String [AST] deriving (Show)
+>          | WhileLoop Condition [AST] deriving (Show)
 
 > parse_print :: Parse AST 
 > parse_print = is_print `bind` \print -> singleChar ' ' `bind` \space -> singleChar '(' `bind` \open -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Print var) 
@@ -183,8 +183,8 @@
 > is_od :: Parse String 
 > is_od  = singleChar 'o' `bind` \o -> singleChar 'd' `bind` \d -> result [o, d]
 
- parse_while_loop :: Parse AST
- parse_while_loop  = is_while `bind` \while -> singleChar '(' `bind` \open -> isword `bind` \leftside ->singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> singleChar ')' `bind` \close -> is_do `bind` \opendo -> singleChar ' ' `bind` \space -> my_parser `bind` \body -> singleChar ' ' `bind` \space1 -> is_od `bind` \closedo -> result (WhileLoop leftside operator rightside [my_parser])
+> parse_while_loop :: Parse AST
+> parse_while_loop  = is_while `bind` \while -> singleChar '(' `bind` \open -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> is_do `bind` \opendo -> singleChar ' ' `bind` \space -> my_parser `bind` \body -> singleChar ' ' `bind` \space1 -> is_od `bind` \closedo -> result (WhileLoop condition [body])
 
 > is_loop_condition :: Parse Condition
 > is_loop_condition  = isword `bind` \leftside -> singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (Condition leftside operator rightside)  
