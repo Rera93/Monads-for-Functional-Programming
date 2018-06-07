@@ -82,15 +82,15 @@
 > isword  = neWord +++ result ""
 >   where neWord = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
 
-> data Operator = Multi | Div | Plus | Minus | Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual deriving (Show)
- 
+> data Operator = Multi | Div | Plus | Minus | Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual deriving (Show) 
 
 > data AST = DeclarationInt String Int 
 >          | DeclarationString String String
 >          | Print String
 >          | Get String
 >          | AssignmentVar String String
->          | AssignmentOp String String Operator String deriving (Show)
+>          | AssignmentOp String String Operator String 
+>          | WhileLoop String Operator String [AST] deriving (Show)
 
 > parse_print :: Parse AST 
 > parse_print = is_print `bind` \print -> singleChar ' ' `bind` \space -> singleChar '(' `bind` \open -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Print var) 
@@ -180,3 +180,9 @@
 
 > is_od :: Parse String 
 > is_od  = singleChar 'o' `bind` \o -> singleChar 'd' `bind` \d -> result [o, d]
+
+ parse_while_loop :: Parse AST
+ parse_while_loop  = is_while `bind` \while -> singleChar '(' `bind` \open -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> is_do `bind` \do -> singleChar ' ' `bind` \space -> my_parser `bind` \body -> singleChar ' ' `bind` \space1 -> is_od `bind` \od -> result (WhileLoop is_loop_condition [my_parser])
+
+> is_loop_condition :: Parse (String, Operator, String)
+> is_loop_condition  = isword `bind` \leftside ->singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (leftside, operator, rightside)  
