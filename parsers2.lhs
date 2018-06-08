@@ -191,6 +191,9 @@
 > is_loop_condition :: Parse Condition
 > is_loop_condition  = isword `bind` \leftside -> singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (Condition leftside operator rightside)
 
+> tokenize :: String -> Parse String
+> tokenize []          = result []
+> tokenize (inp: inps) = singleChar inp `bind` \first-> tokenize inps `bind` \rest -> result (first : rest)
 
  type Monad a = Status -> (a, Status)
  type Status  = Int 
