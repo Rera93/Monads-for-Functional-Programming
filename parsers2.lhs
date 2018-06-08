@@ -78,9 +78,11 @@
 > isletter :: Parse Char
 > isletter  = isuppercase +++ islowercase
 
-> isword :: Parse String 
-> isword  = neWord +++ result ""
->   where neWord = isletter `bind` \x -> isword `bind` \xs -> result (x:xs)
+> repeat' :: Parse a -> Parse [a] 
+> repeat' p = (p `bind` \x -> repeat' p `bind` \xs -> result (x:xs)) +++ result []
+
+> isword :: Parse String
+> isword = isletter `bind` \letter -> repeat' isletter `bind` \letters -> result (letter : letters) 
 
 > data Operator = Multi | Div | Plus | Minus | Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual deriving (Show) 
 
@@ -187,4 +189,11 @@
 > parse_while_loop  = is_while `bind` \while -> singleChar '(' `bind` \open -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> is_do `bind` \opendo -> my_parser `bind` \body -> is_od `bind` \closedo -> result (WhileLoop condition [body])
 
 > is_loop_condition :: Parse Condition
-> is_loop_condition  = isword `bind` \leftside -> singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (Condition leftside operator rightside)  
+> is_loop_condition  = isword `bind` \leftside -> singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (Condition leftside operator rightside)
+
+
+ type Monad a = Status -> (a, Status)
+ type Status  = Int 
+
+ my_eval                              :: AST -> Monad ()  
+ my_eval DeclarationString name value  =  
