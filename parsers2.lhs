@@ -174,19 +174,10 @@
 > is_not_eq_op  = singleChar '!' `bind` \not -> singleChar '=' `bind` \eq -> result NotEqual
 
 > parse_assignment_op :: Parse AST
-> parse_assignment_op  = isword `bind` \leftvar -> singleChar ' ' `bind` \space -> singleChar ':' `bind` \colon -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space1 -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
-
-> is_while :: Parse String
-> is_while  = singleChar 'w' `bind` \w -> singleChar 'h' `bind` \h -> singleChar 'i' `bind` \i -> singleChar 'l' `bind` \l -> singleChar 'e' `bind` \e -> result [w, h, i, l, e]
-
-> is_do :: Parse String 
-> is_do  = singleChar ' ' `bind` \space1 -> singleChar 'd' `bind` \d -> singleChar 'o' `bind` \o -> singleChar ' ' `bind` \space2 -> result [space1, d, o, space2]
-
-> is_od :: Parse String 
-> is_od  = singleChar ' ' `bind` \space1 -> singleChar 'o' `bind` \o -> singleChar 'd' `bind` \d -> result [space1, o, d]
+> parse_assignment_op  = isword `bind` \leftvar -> tokenize " := " `bind` \eq -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
 
 > parse_while_loop :: Parse AST
-> parse_while_loop  = is_while `bind` \while -> singleChar '(' `bind` \open -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> is_do `bind` \opendo -> my_parser `bind` \body -> is_od `bind` \closedo -> result (WhileLoop condition [body])
+> parse_while_loop  = tokenize "while" `bind` \while -> singleChar '(' `bind` \open -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> tokenize " do " `bind` \opendo -> my_parser `bind` \body -> tokenize " od" `bind` \closedo -> result (WhileLoop condition [body])
 
 > is_loop_condition :: Parse Condition
 > is_loop_condition  = isword `bind` \leftside -> singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (Condition leftside operator rightside)
