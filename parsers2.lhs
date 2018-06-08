@@ -121,9 +121,6 @@
 > parse_declaration_int :: Parse AST 
 > parse_declaration_int = is_integer `bind` \integer -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> is_number `bind` \num -> result (DeclarationInt id (read num :: Int) )
 
-> is_string :: Parse String 
-> is_string  = singleChar 'S' `bind` \s -> singleChar 't' `bind` \t -> singleChar 'r' `bind` \r -> singleChar 'i' `bind` \i -> singleChar 'n' `bind` \n -> singleChar 'g' `bind` \g -> result [s, t, r, i, n, g]  
-
 > is_any_char :: Parse Char 
 > is_any_char  = satisfy (\a -> (a >= ' ' && a <= '~') && a /= '\\' && a /= '\"' && a /= '\'' )
 
@@ -132,7 +129,7 @@
 >  where ne_string = is_any_char `bind` \x -> is_any_string `bind` \xs -> result (x:xs)
 
 > parse_declaration_string :: Parse AST 
-> parse_declaration_string = is_string `bind` \string -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> singleChar '\'' `bind` \startQuote -> isword `bind` \word -> singleChar '\'' `bind` \endQuoute -> result (DeclarationString id (startQuote : word ++ [endQuoute]) )
+> parse_declaration_string = tokenize "String " `bind` \string -> isword `bind` \id -> tokenize " = " `bind` \eq -> singleChar '\'' `bind` \startQuote -> isword `bind` \word -> singleChar '\'' `bind` \endQuoute -> result (DeclarationString id (startQuote : word ++ [endQuoute]) )
 
 > parse_assignment_var :: Parse AST
 > parse_assignment_var  = isword `bind` \leftvar -> tokenize " := " `bind` \eq -> isword `bind` \rightvar -> result (AssignmentVar leftvar rightvar) 
