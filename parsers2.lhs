@@ -97,16 +97,10 @@
 >          | WhileLoop Condition [AST] deriving (Show)
 
 > parse_print :: Parse AST 
-> parse_print = is_print `bind` \print -> singleChar ' ' `bind` \space -> singleChar '(' `bind` \open -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Print var) 
+> parse_print = tokenize "print(" `bind` \print -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Print var) 
 
 > parse_get :: Parse AST
-> parse_get  = is_get `bind` \get -> singleChar ' ' `bind` \space -> singleChar '(' `bind` \open -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Get var) 
-
-> is_print :: Parse String
-> is_print = singleChar 'p' `bind` \p -> singleChar 'r' `bind` \r -> singleChar 'i' `bind` \i -> singleChar 'n' `bind` \n -> singleChar 't' `bind` \t -> result [p, r, i, n, t]
-
-> is_get :: Parse String
-> is_get  = singleChar 'g' `bind` \g -> singleChar 'e' `bind` \e -> singleChar 't' `bind` \t -> result [g, e, t] 
+> parse_get  = tokenize "get(" `bind` \get -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Get var) 
 
 > my_parser :: Parse AST
 > my_parser  = parse_print +++ parse_get +++ parse_declaration_int +++ parse_declaration_string +++ parse_assignment_op +++ parse_assignment_var +++ parse_while_loop
