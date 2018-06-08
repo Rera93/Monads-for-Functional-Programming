@@ -112,13 +112,6 @@
 > parse_declaration_int :: Parse AST 
 > parse_declaration_int = tokenize "Integer " `bind` \integer -> isword `bind` \id -> tokenize " = " `bind` \eq -> is_number `bind` \num -> result (DeclarationInt id (read num :: Int) )
 
-> is_any_char :: Parse Char 
-> is_any_char  = satisfy (\a -> (a >= ' ' && a <= '~') && a /= '\\' && a /= '\"' && a /= '\'' )
-
-> is_any_string :: Parse String 
-> is_any_string  = ne_string +++ result ""
->  where ne_string = is_any_char `bind` \x -> is_any_string `bind` \xs -> result (x:xs)
-
 > parse_declaration_string :: Parse AST 
 > parse_declaration_string = tokenize "String " `bind` \string -> isword `bind` \id -> tokenize " = " `bind` \eq -> singleChar '\'' `bind` \startQuote -> isword `bind` \word -> singleChar '\'' `bind` \endQuoute -> result (DeclarationString id (startQuote : word ++ [endQuoute]) )
 
