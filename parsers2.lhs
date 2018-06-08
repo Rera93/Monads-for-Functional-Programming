@@ -111,15 +111,12 @@
 > my_parser :: Parse AST
 > my_parser  = parse_print +++ parse_get +++ parse_declaration_int +++ parse_declaration_string +++ parse_assignment_op +++ parse_assignment_var +++ parse_while_loop
 
-> is_integer :: Parse String 
-> is_integer  = singleChar 'i' `bind` \i -> singleChar 'n' `bind` \n -> singleChar 't' `bind` \t -> singleChar 'e' `bind` \e -> singleChar 'g' `bind` \g -> singleChar 'e' `bind` \e1 -> singleChar 'r' `bind` \r -> result [i, n, t, e, g, e1, r]
-
 > is_number :: Parse String
 > is_number  = ne_number +++ result ""
 >  where ne_number = isdigit `bind` \x -> is_number `bind` \xs -> result (x:xs)
 
 > parse_declaration_int :: Parse AST 
-> parse_declaration_int = is_integer `bind` \integer -> singleChar ' ' `bind` \space -> isword `bind` \id -> singleChar ' ' `bind` \space1 -> singleChar '=' `bind` \eq -> singleChar ' ' `bind` \space2 -> is_number `bind` \num -> result (DeclarationInt id (read num :: Int) )
+> parse_declaration_int = tokenize "Integer " `bind` \integer -> isword `bind` \id -> tokenize " = " `bind` \eq -> is_number `bind` \num -> result (DeclarationInt id (read num :: Int) )
 
 > is_any_char :: Parse Char 
 > is_any_char  = satisfy (\a -> (a >= ' ' && a <= '~') && a /= '\\' && a /= '\"' && a /= '\'' )
