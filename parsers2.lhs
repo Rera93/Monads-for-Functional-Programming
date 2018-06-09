@@ -170,6 +170,11 @@
 > tokenize []          = result []
 > tokenize (inp: inps) = singleChar inp `bind` \first-> tokenize inps `bind` \rest -> result (first : rest)
 
+>
+> data Store = [Variable]
+> data Variable = IntVar String Int | StringVar String String
+
+
  type Monad a = Status -> (a, Status)
  type Status  = Int 
 
