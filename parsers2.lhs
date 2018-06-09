@@ -102,8 +102,14 @@
 > parse_get :: Parse AST
 > parse_get  = tokenize "get(" `bind` \get -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Get var) 
 
-> my_parser :: Parse AST
-> my_parser  = parse_print +++ parse_get +++ parse_declaration_int +++ parse_declaration_string +++ parse_assignment_op +++ parse_assignment_var +++ parse_while_loop
+> parse_all :: Parse AST
+> parse_all  = parse_print +++ parse_get +++ parse_declaration_int +++ parse_declaration_string +++ parse_assignment_op +++ parse_assignment_var +++ parse_while_loop
+
+> iterate'        :: Parse AST -> Parse [AST] 
+> iterate' parser  = (parser `bind` \statement -> tokenize "; " `bind` \semicolon -> iterate' parser `bind` \statements -> result (statement : statements)) +++ result []
+
+> my_parser :: Parse [AST]
+> my_parser  = parse_all `bind` \statement -> tokenize "; " `bind` \semicolon -> (iterate' parse_all) `bind` \statements -> result (statement : statements)
 
 > is_number :: Parse String
 > is_number  = ne_number +++ result ""
@@ -155,7 +161,7 @@
 > parse_assignment_op  = isword `bind` \leftvar -> tokenize " := " `bind` \eq -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
 
 > parse_while_loop :: Parse AST
-> parse_while_loop  = tokenize "while" `bind` \while -> singleChar '(' `bind` \open -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> tokenize " do " `bind` \opendo -> my_parser `bind` \body -> tokenize " od" `bind` \closedo -> result (WhileLoop condition [body])
+> parse_while_loop  = tokenize "while" `bind` \while -> singleChar '(' `bind` \open -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> tokenize " do " `bind` \opendo -> my_parser `bind` \body -> tokenize " od" `bind` \closedo -> result (WhileLoop condition body)
 
 > is_loop_condition :: Parse Condition
 > is_loop_condition  = isword `bind` \leftside -> singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (Condition leftside operator rightside)
