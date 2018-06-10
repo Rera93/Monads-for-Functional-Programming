@@ -170,13 +170,21 @@
 > tokenize []          = result []
 > tokenize (inp: inps) = singleChar inp `bind` \first-> tokenize inps `bind` \rest -> result (first : rest)
 
->
-> data Store = [Variable]
+> type Store = [Variable]
 > data Variable = IntVar String Int | StringVar String String
 
+> type StateMonad a = Store -> (a, Store)
 
- type Monad a = Status -> (a, Status)
- type Status  = Int 
+> unit  :: a -> StateMonad a 
+> unit a = \input -> (a, input)
 
- my_eval                              :: AST -> Monad ()  
- my_eval DeclarationString name value  =  
+> stbind      :: StateMonad a -> (a -> StateMonad b) -> StateMonad b
+> m `stbind` f = \input -> let (a, y) = m input in
+>                          let (b, z) = f a y in 
+>                          (b, z) 
+
+ my_eval                               :: AST -> StateMonad ()  
+ my_eval (DeclarationString name value) = putInStore
+
+ putInStore    :: Variable -> StateMonad () 
+ putInStore var =  
