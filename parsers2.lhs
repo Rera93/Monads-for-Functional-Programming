@@ -2,6 +2,7 @@
 
 > import Data.Char
 > import Data.Ord
+> import qualified Data.Map as M
 
 > type Parse p = State -> [(p, State)]
 > type State = String 
@@ -183,20 +184,35 @@
 >                         let m' = f x in
 >                             m' state' 
 
- my_eval                                             :: AST -> StateMonad AST 
- my_eval (DeclarationString name value)               = putInStore (StringVar name value)
- my_eval (DeclarationInt name value)                  = putInStore (IntVar name value) 
- my_eval (Print name)                                 = 
- my_eval (Get name)                                   = 
- my_eval (AssignmentVar leftvar rightvar)             =  
- my_eval (AssignmentOp String String Operator String) =
- my_eval (WhileLoop Condition [AST])                  = 
+ my_eval                                                     :: AST -> StateMonad AST 
+ my_eval (DeclarationString name value)                       = putInStore (StringVar name value)
+ my_eval (DeclarationInt name value)                          = putInStore (IntVar name value) 
+ my_eval (Print name)                                         = getFromStore name
+ my_eval (Get name)                                           = getFromStore name
+ my_eval (AssignmentVar leftvar rightvar)                     = modifyStore leftvar rightvar 
+ my_eval (AssignmentOp leftvar leftopvar operator rightopvar) =
+ my_eval (WhileLoop condition [ast])                          = 
 
 > putInStore    :: Variable -> StateMonad () 
-> putInStore var = \_ -> returnS () [var]
+> putInStore var = \rest -> returnS () (var : rest)
 
- getFromStore     :: String -> StateMonad (Maybe Variable) 
- getFromStore name =    
+> getFromStore      :: String -> StateMonad [Variable]
+> getFromStore name = get `bindS` \store -> returnS (filter (\v -> getVarName v == name ) store)
+
+> getVarName                 :: Variable -> String
+> getVarName (IntVar name _) = name
+> getVarName (StringVar name _) = name 
+
+> getStore :: StateMonad [Variable]
+> getStore = \store -> returnS store store
+
+ lookUp     :: Variable -> StateMonad Variable 
+ lookUp str = get `bindS` \x -> case lookUp str x of 
+                                 Just v -> returnS v
+                                 Nothing -> returnS () 
+
+ modifyStore :: (String -> String) -> StateMonad ()
+ modifyStore f =  getFromStore `bindS` \x -> putInStore (f x)
 
  place_out :: Parse [AST] -> (AST)
  place_out = my_parser
