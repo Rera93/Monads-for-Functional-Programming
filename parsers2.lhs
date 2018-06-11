@@ -206,5 +206,16 @@
 > getStore :: StateMonad [Variable]
 > getStore = \store -> returnS store store 
 
+> data Exceptions a = Raise Exception | Return a 
+> type Exception = String 
+
+> returnE  :: a -> Exceptions a 
+> returnE a = Return a
+
+> bindE      :: Exceptions a -> (a -> Exceptions b) -> Exceptions b
+> m `bindE` f = case m of 
+>                 Raise e -> Raise e 
+>                 Return a -> f a
+
  modifyStore :: (String -> String) -> StateMonad ()
  modifyStore f =  getFromStore `bindS` \x -> putInStore (f x)
