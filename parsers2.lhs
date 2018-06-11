@@ -171,20 +171,32 @@
 > tokenize (inp: inps) = singleChar inp `bind` \first-> tokenize inps `bind` \rest -> result (first : rest)
 
 > type Store = [Variable]
-> data Variable = IntVar String Int | StringVar String String
+> data Variable = IntVar String Int | StringVar String String deriving (Show)
 
 > type StateMonad a = Store -> (a, Store)
 
-> unit  :: a -> StateMonad a 
-> unit a = \input -> (a, input)
+> returnS         :: a -> StateMonad a 
+> returnS a state = (a, state)
 
-> stbind      :: StateMonad a -> (a -> StateMonad b) -> StateMonad b
-> m `stbind` f = \input -> let (a, y) = m input in
->                          let (b, z) = f a y in 
->                          (b, z) 
+> bindS      :: StateMonad a -> (a -> StateMonad b) -> StateMonad b
+> m `bindS` f = \state -> let (x, state') = m state in
+>                         let m' = f x in
+>                             m' state' 
 
- my_eval                               :: AST -> StateMonad ()  
- my_eval (DeclarationString name value) = putInStore
+ my_eval                                             :: AST -> StateMonad AST 
+ my_eval (DeclarationString name value)               = putInStore (StringVar name value)
+ my_eval (DeclarationInt name value)                  = putInStore (IntVar name value) 
+ my_eval (Print name)                                 = 
+ my_eval (Get name)                                   = 
+ my_eval (AssignmentVar leftvar rightvar)             =  
+ my_eval (AssignmentOp String String Operator String) =
+ my_eval (WhileLoop Condition [AST])                  = 
 
- putInStore    :: Variable -> StateMonad () 
- putInStore var =  
+> putInStore    :: Variable -> StateMonad () 
+> putInStore var = \_ -> returnS () [var]
+
+ getFromStore     :: String -> StateMonad (Maybe Variable) 
+ getFromStore name =    
+
+ place_out :: Parse [AST] -> (AST)
+ place_out = my_parser
