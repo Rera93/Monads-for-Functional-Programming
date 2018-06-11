@@ -196,8 +196,10 @@
 > putInStore    :: Variable -> StateMonad () 
 > putInStore var = \rest -> returnS () (var : rest)
 
-> getFromStore      :: String -> StateMonad Variable
-> getFromStore name = getStore `bindS` \store -> returnS (head (filter (\v -> getVarName v == name ) store))
+> getFromStore      :: String -> StateMonad (Exceptions Variable)
+> getFromStore name = getStore `bindS` \store -> case (filter (\v -> getVarName v == name ) store) of 
+>                                                    []     -> returnS (raise "variable does not exist")
+>                                                    (x:xs) -> returnS (returnE x)
 
 > getVarName                 :: Variable -> String
 > getVarName (IntVar name _) = name
@@ -206,7 +208,7 @@
 > getStore :: StateMonad [Variable]
 > getStore = \store -> returnS store store 
 
-> data Exceptions a = Raise Exception | Return a 
+> data Exceptions a = Raise Exception | Return a deriving (Show)
 > type Exception = String 
 
 > returnE  :: a -> Exceptions a 
@@ -216,6 +218,9 @@
 > m `bindE` f = case m of 
 >                 Raise e -> Raise e 
 >                 Return a -> f a
+
+> raise  :: Exception -> Exceptions a
+> raise e = Raise e 
 
  modifyStore :: (String -> String) -> StateMonad ()
  modifyStore f =  getFromStore `bindS` \x -> putInStore (f x)
