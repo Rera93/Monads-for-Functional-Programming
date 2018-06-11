@@ -196,23 +196,15 @@
 > putInStore    :: Variable -> StateMonad () 
 > putInStore var = \rest -> returnS () (var : rest)
 
-> getFromStore      :: String -> StateMonad [Variable]
-> getFromStore name = getStore `bindS` \store -> returnS (filter (\v -> getVarName v == name ) store)
+> getFromStore      :: String -> StateMonad Variable
+> getFromStore name = getStore `bindS` \store -> returnS (head (filter (\v -> getVarName v == name ) store))
 
 > getVarName                 :: Variable -> String
 > getVarName (IntVar name _) = name
 > getVarName (StringVar name _) = name 
 
 > getStore :: StateMonad [Variable]
-> getStore = \store -> returnS store store
-
- lookUp     :: Variable -> StateMonad Variable 
- lookUp str = get `bindS` \x -> case lookUp str x of 
-                                 Just v -> returnS v
-                                 Nothing -> returnS () 
+> getStore = \store -> returnS store store 
 
  modifyStore :: (String -> String) -> StateMonad ()
  modifyStore f =  getFromStore `bindS` \x -> putInStore (f x)
-
- place_out :: Parse [AST] -> (AST)
- place_out = my_parser
