@@ -197,7 +197,7 @@
 > putInStore var = \rest -> returnS () (var : rest)
 
 > getFromStore      :: String -> StateMonad [Variable]
-> getFromStore name = get `bindS` \store -> returnS (filter (\v -> getVarName v == name ) store)
+> getFromStore name = getStore `bindS` \store -> returnS (filter (\v -> getVarName v == name ) store)
 
 > getVarName                 :: Variable -> String
 > getVarName (IntVar name _) = name
