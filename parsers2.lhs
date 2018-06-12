@@ -198,8 +198,10 @@
 >                                                                                  (Raise _)  -> returnS (raise (leftname ++ " does not exist"))                                                                                 
 >                                                                                  (Return l) -> (getFromStore rightname) `bindS` \rightExists -> case rightExists of 
 >                                                                                                                                                  (Raise _)  -> returnS (raise (rightname ++ " does not exist"))
->                                                                                                                                                  (Return r) -> returnS (raise "success")
-                                                                        
+>                                                                                                                                                  (Return r) -> (checkTypeCompat l r) `bindS` \compat -> case compat of
+>                                                                                                                                                                                                           (Raise e)  -> returnS (Raise e) 
+>                                                                                                                                                                                                           (Return _) -> (removeFromStore l) `bindS` \_ -> (removeFromStore r) `bindS` \_ -> (assign l r) `bindS` \newVal -> putInStore newVal                
+
 > putInStore    :: Variable -> StateMonad (Exceptions Variable) 
 > putInStore var = \store -> case (filter (\v -> (getVarName v) == (getVarName var)) store) of
 >                              []     -> returnS (returnE var) (var : store)                               
@@ -218,8 +220,20 @@
 > getVarType (IntVar _ _)    = "Integer"
 > getVarType (StringVar _ _) = "String"
 
-> checkTypeCompat                  :: Variable -> Variable -> StateMonad (Exceptions Variable)
-> checkTypeCompat varleft varright = if ((getVarType varleft) == (getVarType varright)) then returnS (raise "success") else returnS (raise "Incompatible types")
+> getVarVal                   :: Variable -> Either Int String
+> getVarVal (IntVar _ val)    = Left val
+> getVarVal (StringVar _ val) = Right val
+
+> assign :: Variable -> Variable -> StateMonad Variable 
+> assign (IntVar lname lval) (IntVar rname rval)       = returnS (IntVar lname rval)
+> assign (StringVar lname lval) (StringVar rname rval) = returnS (StringVar lname rval)
+
+> removeFromStore    :: Variable -> StateMonad () 
+> removeFromStore var = \store -> returnS () (delete var store) 
+
+
+> checkTypeCompat                  :: Variable -> Variable -> StateMonad (Exceptions ())
+> checkTypeCompat varleft varright = if (getVarType varleft) == (getVarType varright) then returnS (returnE ()) else returnS (raise "Incompatible types")
 
 > getStore :: StateMonad [Variable]
 > getStore = \store -> returnS store store 
