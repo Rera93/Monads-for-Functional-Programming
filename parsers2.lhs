@@ -220,17 +220,12 @@
 > getVarType (IntVar _ _)    = "Integer"
 > getVarType (StringVar _ _) = "String"
 
-> getVarVal                   :: Variable -> Either Int String
-> getVarVal (IntVar _ val)    = Left val
-> getVarVal (StringVar _ val) = Right val
-
 > assign :: Variable -> Variable -> StateMonad Variable 
 > assign (IntVar lname lval) (IntVar rname rval)       = returnS (IntVar lname rval)
 > assign (StringVar lname lval) (StringVar rname rval) = returnS (StringVar lname rval)
 
 > removeFromStore    :: Variable -> StateMonad () 
 > removeFromStore var = \store -> returnS () (delete var store) 
-
 
 > checkTypeCompat                  :: Variable -> Variable -> StateMonad (Exceptions ())
 > checkTypeCompat varleft varright = if (getVarType varleft) == (getVarType varright) then returnS (returnE ()) else returnS (raise "Incompatible types")
@@ -251,6 +246,3 @@
 
 > raise  :: Exception -> Exceptions a
 > raise e = Raise e 
-
- modifyStore :: (String -> String) -> StateMonad ()
- modifyStore f =  getFromStore `bindS` \x -> putInStore (f x)
