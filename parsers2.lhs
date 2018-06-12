@@ -193,6 +193,13 @@
  my_eval (AssignmentOp leftvar leftopvar operator rightopvar) =
  my_eval (WhileLoop condition [ast])                          = 
 
+> modifyStore                    :: String -> String -> StateMonad (Exceptions Variable)
+> modifyStore leftname rightname = (getFromStore leftname) `bindS` \leftExists -> case leftExists of
+>                                                                                  (Raise _)  -> returnS (raise (leftname ++ " does not exist"))                                                                                 
+>                                                                                  (Return l) -> (getFromStore rightname) `bindS` \rightExists -> case rightExists of 
+>                                                                                                                                                  (Raise _)  -> returnS (raise (rightname ++ " does not exist"))
+>                                                                                                                                                  (Return r) -> returnS (raise "success")
+                                                                        
 > putInStore    :: Variable -> StateMonad (Exceptions Variable) 
 > putInStore var = \store -> case (filter (\v -> (getVarName v) == (getVarName var)) store) of
 >                              []     -> returnS (returnE var) (var : store)                               
@@ -206,6 +213,13 @@
 > getVarName                 :: Variable -> String
 > getVarName (IntVar name _) = name
 > getVarName (StringVar name _) = name 
+
+> getVarType                 :: Variable -> String 
+> getVarType (IntVar _ _)    = "Integer"
+> getVarType (StringVar _ _) = "String"
+
+> checkTypeCompat                  :: Variable -> Variable -> StateMonad (Exceptions Variable)
+> checkTypeCompat varleft varright = if ((getVarType varleft) == (getVarType varright)) then returnS (raise "success") else returnS (raise "Incompatible types")
 
 > getStore :: StateMonad [Variable]
 > getStore = \store -> returnS store store 
