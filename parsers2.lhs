@@ -194,12 +194,14 @@
  my_eval (WhileLoop condition [ast])                          = 
 
 > putInStore    :: Variable -> StateMonad () 
-> putInStore var = \store -> case (filter (\v -> v == var) store) of
+> putInStore var = \store -> case (filter (\v -> (getVarName v) == (getVarName var)) store) of
 >                              []     -> returnS () (var : store)                               
 >                              (x:xs) -> returnS () (var : (delete x store))
 
- removeFromStore    :: Variable -> StateMonad ()
- removeFromStore var = \store -> delete var store `bindS` \deleted -> returnS () (var : store)
+ putInStore    :: Variable -> StateMonad () 
+ putInStore var = \store -> (getFromStore (getVarName var) store) `bindS` \excp -> case excp of
+                                                                                 (Return x) -> returnS () (var : (delete x store))                             
+                                                                                 (Raise _) -> returnS () (var : store)
 
 > getFromStore      :: String -> StateMonad (Exceptions Variable)
 > getFromStore name = getStore `bindS` \store -> case (filter (\v -> getVarName v == name ) store) of 
