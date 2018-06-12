@@ -2,7 +2,7 @@
 
 > import Data.Char
 > import Data.Ord
-> import qualified Data.Map as M
+> import Data.List
 
 > type Parse p = State -> [(p, State)]
 > type State = String 
@@ -172,7 +172,7 @@
 > tokenize (inp: inps) = singleChar inp `bind` \first-> tokenize inps `bind` \rest -> result (first : rest)
 
 > type Store = [Variable]
-> data Variable = IntVar String Int | StringVar String String deriving (Show)
+> data Variable = IntVar String Int | StringVar String String deriving (Show, Eq)
 
 > type StateMonad a = Store -> (a, Store)
 
@@ -194,7 +194,12 @@
  my_eval (WhileLoop condition [ast])                          = 
 
 > putInStore    :: Variable -> StateMonad () 
-> putInStore var = \rest -> returnS () (var : rest)
+> putInStore var = \store -> case (filter (\v -> v == var) store) of
+>                              []     -> returnS () (var : store)                               
+>                              (x:xs) -> returnS () (var : (delete x store))
+
+ removeFromStore    :: Variable -> StateMonad ()
+ removeFromStore var = \store -> delete var store `bindS` \deleted -> returnS () (var : store)
 
 > getFromStore      :: String -> StateMonad (Exceptions Variable)
 > getFromStore name = getStore `bindS` \store -> case (filter (\v -> getVarName v == name ) store) of 
