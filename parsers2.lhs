@@ -184,12 +184,16 @@
 >                         let m' = f x in
 >                             m' state' 
 
- my_eval                                                     :: AST -> StateMonad AST 
+> transform :: [AST]
+> transform = case my_parser of
+>                        [(parsed_input, notparsed_input)] -> [parsed_input]         
+
+ my_eval                                                     :: [AST] -> StateMonad () 
  my_eval (DeclarationString name value)                       = putInStore (StringVar name value)
  my_eval (DeclarationInt name value)                          = putInStore (IntVar name value) 
  my_eval (Print name)                                         = getFromStore name
  my_eval (Get name)                                           = getFromStore name
- my_eval (AssignmentVar leftvar rightvar)                     = modifyStore leftvar rightvar 
+ my_eval (AssignmentVar leftvar rightvar)                     = modifyStoremy leftvar rightvar 
  my_eval (AssignmentOp leftvar leftopvar operator rightopvar) =
  my_eval (WhileLoop condition [ast])                          = 
 
@@ -205,11 +209,11 @@
 > putInStore    :: Variable -> StateMonad (Exceptions Variable) 
 > putInStore var = \store -> case (filter (\v -> (getVarName v) == (getVarName var)) store) of
 >                              []     -> returnS (returnE var) (var : store)                               
->                              (x:xs) -> returnS (raise "variable already exists") store
+>                              (x:xs) -> returnS (raise ("variable " ++ (getVarName var) ++ " already exists")) store
 
 > getFromStore      :: String -> StateMonad (Exceptions Variable)
 > getFromStore name = getStore `bindS` \store -> case (filter (\v -> getVarName v == name ) store) of 
->                                                    []     -> returnS (raise "variable does not exist")
+>                                                    []     -> returnS (raise ("variable " ++ name ++ " does not exist"))
 >                                                    (x:xs) -> returnS (returnE x)
 
 > getVarName                 :: Variable -> String
