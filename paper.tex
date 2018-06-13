@@ -459,7 +459,7 @@
     
     \subsection{Algebraic Data Types}
     
-    In order to parse any of the statements of this simple programming language, an algebraic data type type namely \textbf{AST} needs to be created. This \textbf{AST} will provide a tree representation of the abstract structure of the programming language. The \textit{Abstract Syntax Tree} is illustrated below:
+    In order to parse any of the statements of this simple programming language, an algebraic data type type namely \textbf{AST} needs to be created. This \textbf{AST} will provide a tree representation of the abstract structure of the programming language. The \textit{Abstract Syntax Tree} is portrayed through Haskell's algebraic data types and its implementation is illustrated below:
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -473,7 +473,7 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent Additionally the definition of the \textbf{Operator} and \textbf{Condition} data types has been defined: 
+    \noindent As it can be seen, the AST is referencing two data types which have not been created yet. As a consequence, the definition of the \textbf{Operator} and \textbf{Condition} data types has been defined below: 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -486,7 +486,7 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    
+    \subsection{Tokenizer}
     
     
     \begin{thebibliography}{9}
