@@ -439,6 +439,55 @@
     
     \subsection{Conclusions}
     
+    \section{A Case Study}
+    
+    In order to properly illustrate the monadic techniques described on section 5, a case study will be conducted on creating a parser in a monadic way for a simple programming language with the following constructs: 
+    
+    \begin{itemize}
+        \item Only \textit{Integer} and \textit{String} variable declarations \\
+        \textbf{Integer} a = 42 or \textbf{String} b = `Hello Monads!'
+        \item Output functions \\ 
+        \textbf{print}(a)
+        \item Input functions \\
+        \textbf{get}(a)
+        \item Variables assignments and operators \\ 
+        a \textbf{:=} b where a and b are variables \\ 
+        a \textbf{:=} b op c where a, b, and c are variables and op is an \textit{arithmetic operator} (*, /, +, -) or a \textit{comparison operator} (==, !=, $<$=, $<$, $>$=, $>$) 
+        \item While loop \\ 
+        \textbf{while}(\textit{condition}) \textbf{do} \textit{statements} \textbf{od}
+    \end{itemize}
+    
+    \subsection{Algebraic Data Types}
+    
+    In order to parse any of the statements of this simple programming language, an algebraic data type type namely \textbf{AST} needs to be created. This \textbf{AST} will provide a tree representation of the abstract structure of the programming language. The \textit{Abstract Syntax Tree} is illustrated below:
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+        data AST = DeclarationInt String Int 
+                 | DeclarationString String String
+                 | Print String
+                 | Get String
+                 | AssignmentVar String String
+                 | AssignmentOp String String Operator String 
+                 | WhileLoop Condition [AST] deriving (Show)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent Additionally the definition of the \textbf{Operator} and \textbf{Condition} data types has been defined: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    data Operator  = Multi | Div | Plus | Minus
+                   | Equal | NotEqual
+                   | GreaterThan | GreaterThanOrEqual 
+                   | LessThan | LessThanOrEqual deriving (Show)
+        
+    data Condition = Condition String Operator String deriving (Show) 
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    
+    
     
     \begin{thebibliography}{9}
     \bibitem{categorytheory} 
