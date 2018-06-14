@@ -395,7 +395,7 @@
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
         isword :: Parse String
-        isword = word ++ result ""
+        isword = word +++ result ""
                    where word = isletter `bind` \x -> isword 
                                          `bind` \xs -> result (x:xs)
     \end{lstlisting}
@@ -487,6 +487,44 @@
     \end{tcolorbox}
     
     \subsection{Tokenizer}
+    
+    An important step in order to parse the statements of our programming language is slicing input strings into fragments such as keywords, symbols and other elements called tokens. Therefore, a \textbf{tokenizer} has been built to mimic this behavior.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    tokenize         :: String -> Parse String
+    tokenize []       = result []
+    tokenize (x : xs) = singleChar x `bind` \first -> tokenize xs 
+                              `bind` \rest  -> result (first:rest)
+     \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textit{tokenizer} is eating a keyword and an input string to then return a tuple of parsed and unparsed input string. Whether the content of the input string is going to be parsed will depend on the value of the keyword which itself is also a string. Obviously, if this keyword is an empty string than nothing will be parsed no matter the content of the input string. In case, the token in a non empty string then the \textit{tokenizer} will use the \textit{singleChar} parser to parse the first character of the input string and through the bind operator pass the parsed character as an input to the lambda expression \textbf{\textbackslash first -$>$ tokenize xs}. Then, the function will recursively apply the \textit{tokenizer} to the rest of the keyword. This operation will finish when the whole keyword has been traversed. Through another bind operator, the resulting value of \textbf{tokenize xs} will be passed as an input to the lambda expression taking the \textbf{rest} variable and returning a \textit{result} parser. The \textit{result} parser takes as an input a list containing the parsed and unparsed input string which is also the output of the \textit{tokenizer}. \\ \\
+    The following example will illustrate how the \textit{tokenizer} will parse the Integer keyword:
+    
+    \begin{center}
+            \textbf{ghci$>$} tokenize \textcolor{red}{``Integer"} ``Integer a = 5" \\
+             $\big[$(\textcolor{green}{``Integer"}, \textcolor{red}{`` a = 5"})$\big]$
+        \end{center}
+    
+    \noindent Therefore, the \textit{tokenizer} will come in handy in parsing any keyword the programmer wants. In the upcoming sections, we will see how the tokenize can be used as an asset to build the parsers of each statement. 
+    
+    \subsection{Repetition}
+    
+    At the moment the isword parser
+    
+    \subsection{Statements}
+    
+    \subsubsection{Variable Declaration}
+    \subsubsection{Input and Output}
+    \subsubsection{Variable Assignment}
+    \subsubsection{While Loop}
+    
+    \subsection{Combining Statements}
+    
+    \subsection{Parsing a program}
+    
+    
     
     
     \begin{thebibliography}{9}

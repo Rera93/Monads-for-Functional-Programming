@@ -184,9 +184,9 @@
 >                         let m' = f x in
 >                             m' state' 
 
-> transform :: [AST]
-> transform = case my_parser of
->                        [(parsed_input, notparsed_input)] -> [parsed_input]         
+ transform :: [AST]
+ transform = case my_parser of
+                        [(parsed_input, notparsed_input)] -> [parsed_input]         
 
  my_eval                                                     :: [AST] -> StateMonad () 
  my_eval (DeclarationString name value)                       = putInStore (StringVar name value)
@@ -250,3 +250,7 @@
 
 > raise  :: Exception -> Exceptions a
 > raise e = Raise e 
+
+> isword' :: Parse String
+> isword'  = word +++ result ""
+>               where word = isletter `bind` \x -> isword' `bind` \xs -> result (x:xs) 
