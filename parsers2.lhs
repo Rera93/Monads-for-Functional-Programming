@@ -182,20 +182,22 @@
 > bindS      :: StateMonad a -> (a -> StateMonad b) -> StateMonad b
 > m `bindS` f = \state -> let (x, state') = m state in
 >                         let m' = f x in
->                             m' state' 
+>                             m' state'   
 
- transform :: [AST]
- transform = case my_parser of
-                        [(parsed_input, notparsed_input)] -> [parsed_input]         
+> evaluate :: State -> StateMonad (Exceptions Variable)
+> evaluate input = case my_parser input of
+>                    []    -> returnS (raise "no parse") 
+>                    [((x:xs),_)] -> transform x
 
- my_eval                                                     :: [AST] -> StateMonad () 
- my_eval (DeclarationString name value)                       = putInStore (StringVar name value)
- my_eval (DeclarationInt name value)                          = putInStore (IntVar name value) 
- my_eval (Print name)                                         = getFromStore name
- my_eval (Get name)                                           = getFromStore name
- my_eval (AssignmentVar leftvar rightvar)                     = modifyStoremy leftvar rightvar 
+> transform                                                    :: AST -> StateMonad (Exceptions Variable) 
+> transform (DeclarationString name value)                       = putInStore (StringVar name value)
+> transform (DeclarationInt name value)                          = putInStore (IntVar name value) 
+> transform (Print name)                                         = getFromStore name
+> transform (Get name)                                           = getFromStore name
+> transform (AssignmentVar leftvar rightvar)                     = modifyStore leftvar rightvar 
+
  my_eval (AssignmentOp leftvar leftopvar operator rightopvar) =
- my_eval (WhileLoop condition [ast])                          = 
+ my_eval (WhileLoop condition [])                          = 
 
 > modifyStore                    :: String -> String -> StateMonad (Exceptions Variable)
 > modifyStore leftname rightname = (getFromStore leftname) `bindS` \leftExists -> case leftExists of
