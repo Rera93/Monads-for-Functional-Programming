@@ -192,27 +192,21 @@
 > transform        :: [AST] -> StateMonad (Exceptions Variable) 
 > transform []     = returnS (raise "success")
 > transform (x:xs) = case x of 
->                      (DeclarationString name value)   -> (putInStore (StringVar name value)) `bindS` errorCheck xs
->                      (DeclarationInt name value)      -> (putInStore (IntVar name value)) `bindS` errorCheck xs 
->                      (Print name)                     -> (getFromStore name) `bindS` errorCheck xs
->                      (Get name)                       -> (getFromStore name) `bindS` errorCheck xs
->                      (AssignmentVar leftvar rightvar) -> (modifyStore leftvar rightvar) `bindS` errorCheck xs
-
-> errorCheck :: [AST] -> Exceptions Variable -> StateMonad (Exceptions Variable)
-> errorCheck []      = \e -> returnS (e)
-> errorCheck astList = \e -> case e of (Raise _)  -> returnS (e) 
->                                      (Return _) -> transform astList 
-
- transform                                                    :: AST -> StateMonad (Exceptions Variable) 
- transform (DeclarationString name value)                       = putInStore (StringVar name value)
- transform (DeclarationInt name value)                          = putInStore (IntVar name value) 
- transform (Print name)                                         = getFromStore name
- transform (Get name)                                           = getFromStore name
- transform (AssignmentVar leftvar rightvar)                     = modifyStore leftvar rightvar 
-
+>                      (DeclarationString name value)   -> (putInStore (StringVar name value)) `bindS` errorOrTransform xs
+>                      (DeclarationInt name value)      -> (putInStore (IntVar name value)) `bindS` errorOrTransform xs 
+>                      (Print name)                     -> (getFromStore name) `bindS` errorOrTransform xs
+>                      (Get name)                       -> (getFromStore name) `bindS` errorOrTransform xs
+>                      (AssignmentVar leftvar rightvar) -> (modifyStore leftvar rightvar) `bindS` errorOrTransform xs
 
  my_eval (AssignmentOp leftvar leftopvar operator rightopvar) =
  my_eval (WhileLoop condition [])                          = 
+
+> errorOrTransform :: [AST] -> Exceptions Variable -> StateMonad (Exceptions Variable)
+> errorOrTransform []      = \e -> returnS (e)
+> errorOrTransform astList = \e -> case e of (Raise _)  -> returnS (e) 
+>                                            (Return _) -> transform astList 
+
+
 
 > modifyStore                    :: String -> String -> StateMonad (Exceptions Variable)
 > modifyStore leftname rightname = (getFromStore leftname) `bindS` \leftExists -> case leftExists of
