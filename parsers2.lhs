@@ -192,11 +192,16 @@
 > transform        :: [AST] -> StateMonad (Exceptions Variable) 
 > transform []     = returnS (raise "success")
 > transform (x:xs) = case x of 
->                      (DeclarationString name value)   -> (putInStore (StringVar name value)) `bindS` \y -> transform xs 
->                      (DeclarationInt name value)      -> (putInStore (IntVar name value)) `bindS` \y -> transform xs 
->                      (Print name)                     -> (getFromStore name) `bindS` \y -> transform xs
->                      (Get name)                       -> (getFromStore name) `bindS` \y -> transform xs
->                      (AssignmentVar leftvar rightvar) -> (modifyStore leftvar rightvar) `bindS` \y -> transform xs
+>                      (DeclarationString name value)   -> (putInStore (StringVar name value)) `bindS` errorCheck xs
+>                      (DeclarationInt name value)      -> (putInStore (IntVar name value)) `bindS` errorCheck xs 
+>                      (Print name)                     -> (getFromStore name) `bindS` errorCheck xs
+>                      (Get name)                       -> (getFromStore name) `bindS` errorCheck xs
+>                      (AssignmentVar leftvar rightvar) -> (modifyStore leftvar rightvar) `bindS` errorCheck xs
+
+> errorCheck :: [AST] -> Exceptions Variable -> StateMonad (Exceptions Variable)
+> errorCheck []      = \e -> returnS (e)
+> errorCheck astList = \e -> case e of (Raise _)  -> returnS (e) 
+>                                      (Return _) -> transform astList 
 
  transform                                                    :: AST -> StateMonad (Exceptions Variable) 
  transform (DeclarationString name value)                       = putInStore (StringVar name value)
