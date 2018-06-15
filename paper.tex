@@ -577,6 +577,23 @@
     
     
     \subsubsection{Variable Assignment}
+    
+    Variable assignment will take place in two forms where the right side of the assignment can be either just a variable or a combination of two variables with a comparison or an arithmetic operator in between. The assignment format is: a variable name, a space, a colon, an equality operator, a space and the right side (a variable name or a variable name, a space, an operator, a space, another variable name). The implementation of the first case of variable assignment is presented below:  
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    parse_assignment_var :: Parse AST
+    parse_assignment_var = 
+        isword `bind` \leftvar -> tokenize " := " 
+               `bind` \eq -> isword 
+               `bind` \rightvar -> 
+        result (AssignmentVar leftvar rightvar) 
+     
+     \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The second case of variable assignment is not as simple as the first one since some additional parsers need to be included in order to parse operators (\textit{comparison} and \textit{arithmetic}).
+    
     \subsubsection{While Loop}
     
     \subsection{Combining Statements}
