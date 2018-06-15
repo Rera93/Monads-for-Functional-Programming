@@ -518,9 +518,42 @@
     In this section, the approaches used to parse the statements of our programming language will be illustrated. Thanks to the \textit{result} parser and the \textit{bind} operator, this process has been simplified to a great extent and parsers are much more readable. 
     
     \subsubsection{Variable Declaration}
+    
+    The simple programming language used for this case study contains only two types of variables: \textbf{Strings} and \textbf{Integers}. The declaration of a variable contains the following format: a keyword (either \textit{String} or \textit{Integer}), a space, a variable name (list of characters), a space, an equality operator, a space, a number for integer declaration or a string surrounded in single quotes for string declaration. \\ \\
+    Keeping in mind the format, the construction of the \textbf{parse\textunderscore declaration\textunderscore string} and \\ \textbf{parse\textunderscore declaration\textunderscore int} is rather straightforward since all the parsers needed to construct these parsers have already been defined on section 5.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    parse_declaration_string :: Parse AST
+    parse_declaration_string = 
+        tokenize "String " `bind` \string -> isword 
+                           `bind` \id -> tokenize " = "          
+                           `bind` \eq -> singleChar '\''  
+                           `bind` \startQuote -> isword 
+                           `bind` \word -> singleChar '\''    
+                           `bind` \endQuoute -> 
+        result (DeclarationString id (startQuote : word ++ [endQuoute])) 
+     \end{lstlisting}
+    \end{tcolorbox}
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+     parse_declaration_int :: Parse AST 
+     parse_declaration_int = 
+        tokenize "Integer " `bind` \integer -> isword 
+                            `bind` \id -> tokenize " = " 
+                            `bind` \eq -> is_number 
+                            `bind` \num ->
+        result (DeclarationInt id (read num :: Int) ) 
+     \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent From the above implementations, it can be seen how important the \textit{tokenizer} is by parsing groups of characters like ``\textbf{String }",``\textbf{Integer }", and ``\textbf{ = }". Additionally, binding operators combine parsers and provide a smooth transition between each one of them. The \textbf{result} parser is utilized to yield a list of tuples containing the corresponding parsed AST and unparsed input string.  
+    
+    
     \subsubsection{Input and Output}
     
-    The behavior of input and output operations is represented with the keywords \textbf{get} and \textbf{print} respectively. The implemented of the parsers that will parse the input and output statements is presented below:
+    The behavior of input and output operations is represented with the keywords \textbf{get} and \textbf{print} respectively. The format in parsing input and output is the following: a keyword (either \textbf{get} or \textbf{print}), an opening bracket, variable name, and a closing bracket. The implementation of the parsers that will parse the input and output statements is presented below:
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -540,7 +573,7 @@
      \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent Both parsers, \textbf{parse\textunderscore get} and \textbf{parse\textunderscore print} will eat an input string and return a list containing a tuple of parsed input and unparsed input. The initial step is using the tokenizer to parse from the input string the keywords \textbf{get} and \textbf{print} together with the opening bracket. Then the bind operator will combine the tokenizer with a lambda expression getting as an input what was just parsed and returning the \textit{isword} parser which is applied to the remaining input string. The \textit{isword} parser will read some variable name and stop parsing when a non alphabetic character is found. Immediately after the variable name, the closing bracket is expected to be parsed through the \textit{singleChar} parser. The outcome in both parsers contains the result parser taking as input the AST values (\textbf{Get var} or \textbf{Print var}) where var is the string parsed by the \textit{isword} parser and the remaining input string.
+    \noindent The construction of these parsers is much simpler that the parsers from variable declaration since there is not so much tokens to parse in this situation. The \textit{tokenizer} is again used to parse the keywords together with opening bracket: \textbf{"print("} and \textbf{get(}. The outcome in both parsers contains the \textbf{result} parser taking as input the AST values \textbf{Get var} or \textbf{Print var} (where \textit{var} is the string parsed by the \textit{isword} parser) and the remaining unparsed input string.
     
     
     \subsubsection{Variable Assignment}
