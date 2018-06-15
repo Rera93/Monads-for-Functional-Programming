@@ -216,7 +216,7 @@
 >                                                                                                                                                  (Raise _)  -> returnS (raise (rightname ++ " does not exist"))
 >                                                                                                                                                  (Return r) -> (checkTypeCompat l r) `bindS` \compat -> case compat of
 >                                                                                                                                                                                                           (Raise e)  -> returnS (Raise e) 
->                                                                                                                                                                                                           (Return _) -> (removeFromStore l) `bindS` \_ -> (removeFromStore r) `bindS` \_ -> (assign l r) `bindS` \newVal -> putInStore newVal                
+>                                                                                                                                                                                                           (Return _) -> (removeFromStore l) `bindS` \_ -> (assign l r) `bindS` \newVal -> putInStore newVal                
 
 > putInStore    :: Variable -> StateMonad (Exceptions Variable) 
 > putInStore var = \store -> case (filter (\v -> (getVarName v) == (getVarName var)) store) of
