@@ -515,8 +515,34 @@
     
     \subsection{Statements}
     
+    In this section, the approaches used to parse the statements of our programming language will be illustrated. Thanks to the \textit{result} parser and the \textit{bind} operator, this process has been simplified to a great extent and parsers are much more readable. 
+    
     \subsubsection{Variable Declaration}
     \subsubsection{Input and Output}
+    
+    The behavior of input and output operations is represented with the keywords \textbf{get} and \textbf{print} respectively. The implemented of the parsers that will parse the input and output statements is presented below:
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    parse_get :: Parse AST
+    parse_get  = tokenize "get(" `bind` \get -> isword 
+                                 `bind` \var -> singleChar ')' 
+                                 `bind` \close -> result (Get var) 
+     \end{lstlisting}
+    \end{tcolorbox}
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    parse_print :: Parse AST
+    parse_print  = tokenize "print(" `bind` \print -> isword 
+                                     `bind` \var -> singleChar ')' 
+                                     `bind` \close -> result (Print var) 
+     \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent Both parsers, \textbf{parse\textunderscore get} and \textbf{parse\textunderscore print} will eat an input string and return a list containing a tuple of parsed input and unparsed input. The initial step is using the tokenizer to parse from the input string the keywords \textbf{get} and \textbf{print} together with the opening bracket. Then the bind operator will combine the tokenizer with a lambda expression getting as an input what was just parsed and returning the \textit{isword} parser which is applied to the remaining input string. The \textit{isword} parser will read some variable name and stop parsing when a non alphabetic character is found. Immediately after the variable name, the closing bracket is expected to be parsed through the \textit{singleChar} parser. The outcome in both parsers contains the result parser taking as input the AST values (\textbf{Get var} or \textbf{Print var}) where var is the string parsed by the \textit{isword} parser and the remaining input string.
+    
+    
     \subsubsection{Variable Assignment}
     \subsubsection{While Loop}
     
