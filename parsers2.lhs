@@ -187,14 +187,24 @@
 > evaluate :: State -> StateMonad (Exceptions Variable)
 > evaluate input = case my_parser input of
 >                    []    -> returnS (raise "no parse") 
->                    [((x:xs),_)] -> transform x
+>                    [(list,_)] -> transform list 
+ 
+> transform        :: [AST] -> StateMonad (Exceptions Variable) 
+> transform []     = returnS (raise "success")
+> transform (x:xs) = case x of 
+>                      (DeclarationString name value)   -> (putInStore (StringVar name value)) `bindS` \y -> transform xs 
+>                      (DeclarationInt name value)      -> (putInStore (IntVar name value)) `bindS` \y -> transform xs 
+>                      (Print name)                     -> (getFromStore name) `bindS` \y -> transform xs
+>                      (Get name)                       -> (getFromStore name) `bindS` \y -> transform xs
+>                      (AssignmentVar leftvar rightvar) -> (modifyStore leftvar rightvar) `bindS` \y -> transform xs
 
-> transform                                                    :: AST -> StateMonad (Exceptions Variable) 
-> transform (DeclarationString name value)                       = putInStore (StringVar name value)
-> transform (DeclarationInt name value)                          = putInStore (IntVar name value) 
-> transform (Print name)                                         = getFromStore name
-> transform (Get name)                                           = getFromStore name
-> transform (AssignmentVar leftvar rightvar)                     = modifyStore leftvar rightvar 
+ transform                                                    :: AST -> StateMonad (Exceptions Variable) 
+ transform (DeclarationString name value)                       = putInStore (StringVar name value)
+ transform (DeclarationInt name value)                          = putInStore (IntVar name value) 
+ transform (Print name)                                         = getFromStore name
+ transform (Get name)                                           = getFromStore name
+ transform (AssignmentVar leftvar rightvar)                     = modifyStore leftvar rightvar 
+
 
  my_eval (AssignmentOp leftvar leftopvar operator rightopvar) =
  my_eval (WhileLoop condition [])                          = 
