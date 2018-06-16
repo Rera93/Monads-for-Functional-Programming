@@ -126,7 +126,13 @@
 > parse_assignment_var  = isword `bind` \leftvar -> tokenize " := " `bind` \eq -> isword `bind` \rightvar -> result (AssignmentVar leftvar rightvar) 
 
 > is_arith_op :: Parse Operator 
-> is_arith_op  =  is_multi_op +++ is_div_op +++ is_plus_op +++ is_minus_op +++ is_greaterthan_eq_op +++ is_greaterthan_op +++ is_lessthan_eq_op +++ is_lessthan_op +++ is_eq_op +++ is_not_eq_op
+> is_arith_op  =  is_multi_op +++ is_div_op +++ is_plus_op +++ is_minus_op 
+
+> is_operator :: Parse Operator
+> is_operator = is_arith_op +++ is_comp_op 
+
+> is_comp_op :: Parse Operator
+> is_comp_op = is_greaterthan_eq_op +++ is_greaterthan_op +++ is_lessthan_eq_op +++ is_lessthan_op +++ is_eq_op +++ is_not_eq_op 
 
 > is_multi_op :: Parse Operator
 > is_multi_op  = singleChar '*' `bind` \multi -> result Multi
@@ -159,13 +165,13 @@
 > is_not_eq_op  = tokenize "!=" `bind` \eq -> result NotEqual
 
 > parse_assignment_op :: Parse AST
-> parse_assignment_op  = isword `bind` \leftvar -> tokenize " := " `bind` \eq -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
+> parse_assignment_op  = isword `bind` \leftvar -> tokenize " := " `bind` \eq -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_operator `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
 
 > parse_while_loop :: Parse AST
 > parse_while_loop  = tokenize "while(" `bind` \while -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> tokenize " do " `bind` \opendo -> (my_parser) `bind` \body -> tokenize " od" `bind` \closedo -> result (WhileLoop condition body)
 
 > is_loop_condition :: Parse Condition
-> is_loop_condition  = isword `bind` \leftside -> singleChar ' ' `bind` \space1 -> is_arith_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (Condition leftside operator rightside)
+> is_loop_condition  = isword `bind` \leftside -> singleChar ' ' `bind` \space1 -> is_comp_op `bind` \operator -> singleChar ' ' `bind` \space2 -> isword `bind` \rightside -> result (Condition leftside operator rightside)
 
 > tokenize :: String -> Parse String
 > tokenize []          = result []
