@@ -610,7 +610,7 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent As it can be seen, the design is rather simple containing a single \textbf{bind} between the \textbf{singleChar} parser and a function taking the operator character parsed and returning the \textbf{result} parser. The \textbf{result} parser is used to represent the outcome of these parsers taking one of the value constructors of \textit{Operator} which depends on the operator parsed and the remaining input string. \\ \\ 
+    \noindent As it can be seen, the design is rather simple containing a single \textbf{bind} between the \textbf{singleChar} parser and a function taking the operator character parsed and returning the \textbf{result} parser. The \textbf{result} parser is used to represent the outcome of these parsers taking one of the value constructors of \textit{Operator} (depending on the operator parsed) and the remaining input string. \\ \\ 
     Next, the parsers for the \textit{comparison} operators are illustrated:
     
     \begin{tcolorbox}
@@ -640,7 +640,7 @@
     \end{tcolorbox}
     
     \noindent As expected, the construction is equivalent to the \textit{arithmetic} parsers. Although, on the operators (==, !=, $<$=, $>$=) a \textit{tokenizer} is used since more than one character needs to be recognized to then be parsed. \\ \\
-    At the moment, all the parsers to recognize \textit{arithmetic} and \textit{comparison} operators have been defined. The next step would be creating another parser that encapsulates all of the above parsers to recognize operators in general. How can this be achieved? Well, with the elegance of \textit{alternation} of course! However, before creating the final is\textunderscore operator parser, two parsers to wrap arithmetic and comparison operator separated needs to be defined. Let's see how nice and neat these parsers looks like:
+    At the moment, all the parsers to recognize \textit{arithmetic} and \textit{comparison} operators have been defined. The next step would be creating another parser that encapsulates all of the above parsers to recognize operators in general. How can this be achieved? Well, with the elegance of \textit{alternation} of course! However, before creating the final \textbf{is\textunderscore operator} parser, two parsers need to be defined in order to wrap \textit{arithmetic} and \textit{comparison} operators. Let's see how nice and neat these parsers looks like:
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -663,7 +663,7 @@
         \end{center}
     
     \noindent The same situation applies to the ($<$=, $<$) combination. Therefore, order is important between these operators. \\ \\ 
-    After cleariing this ambiguity is safe to create the final \textbf{is\textunderscore operator} parser which will alternate between the \textit{arithmetic} and \textit{comparison} operator parsers where order will not matter. 
+    After clearing this ambiguity, it is safe to create the final \textbf{is\textunderscore operator} parser which will alternate between the \textit{arithmetic} and \textit{comparison} operator parsers where order will not matter. 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
