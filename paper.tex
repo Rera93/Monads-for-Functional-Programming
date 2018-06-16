@@ -671,6 +671,24 @@
     is_operator = is_arith_op +++ is_comp_op
     \end{lstlisting}
     \end{tcolorbox}
+    
+    \noindent The creation of the \textbf{is\textunderscore operator} parser makes it viable to finally build the variable assignment parser where the right side contains an operator between two variable names. 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    parse_assignment_op :: Parse AST
+    parse_assignment_op  = isword `bind` \leftvar -> tokenize " := " 
+                                  `bind` \eq -> isword 
+                                  `bind` \leftopvar -> singleChar ' ' 
+                                  `bind` \space2 -> is_operator 
+                                  `bind` \operator -> singleChar ' ' 
+                                  `bind` \space3 -> isword 
+                                  `bind` \rightopvar -> 
+        result (AssignmentOp leftvar leftopvar operator rightopvar)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent Several \textbf{bind} operators have been used to construct this parser showing how the concept of monadic \textit{sequencing} keeps the steps transparent and provides a smooth transition between the different parsers used.  
     \subsubsection{While Loop}
     
     \subsection{Combining Statements}
