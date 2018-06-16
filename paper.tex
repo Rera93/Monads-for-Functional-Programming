@@ -592,8 +592,85 @@
      \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The second case of variable assignment is not as simple as the first one since some additional parsers need to be included in order to parse operators (\textit{comparison} and \textit{arithmetic}).
+    \noindent The second case of variable assignment is not as simple as the first one since some additional parsers need to be included in order to parse operators (\textit{comparison} and \textit{arithmetic}). Each operator is represented with a different parser that has type \textbf{Parse Operator} since an \textit{Operator} data type is being parsed and not an \textit{AST} data type. Initially, the parsers for the arithmetic operators are illustrated: 
     
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    is_multi_op :: Parse Operator
+    is_multi_op = singleChar '*' `bind` \multi -> result Multi
+    
+    is_div_op :: Parse Operator
+    is_div_op = singleChar '/' `bind` \div -> result Div
+    
+    is_plus_op :: Parse Operator
+    is_plus_op  = singleChar '+' `bind` \plus -> result Plus
+    
+    is_minus_op :: Parse Operator
+    is_minus_op  = singleChar '-' `bind` \minus -> result Minus
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent As it can be seen, the design is rather simple containing a single \textbf{bind} between the \textbf{singleChar} parser and a function taking the operator character parsed and returning the \textbf{result} parser. The \textbf{result} parser is used to represent the outcome of these parsers taking one of the value constructors of \textit{Operator} which depends on the operator parsed and the remaining input string. \\ \\ 
+    Next, the parsers for the \textit{comparison} operators are illustrated:
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    is_greaterthan_op :: Parse Operator 
+    is_greaterthan_op = singleChar '>' `bind` \greater -> 
+                                        result GreaterThan
+    
+    is_greaterthan_eq_op :: Parse Operator 
+    is_greaterthan_eq_op = tokenize ">=" `bind` \eq -> 
+                                         result GreaterThanOrEqual
+    
+    is_lessthan_op :: Parse Operator 
+    is_lessthan_op = singleChar '<' `bind` \less ->
+                                      result LessThan
+    
+    is_lessthan_eq_op :: Parse Operator 
+    is_lessthan_eq_op = tokenize "<=" `bind` \eq -> 
+                                      result LessThanOrEqual
+    
+    is_eq_op :: Parse Operator
+    is_eq_op = tokenize "==" `bind` \eq2 -> result Equal
+    
+    is_not_eq_op :: Parse Operator
+    is_not_eq_op = tokenize "!=" `bind` \eq -> result NotEqual
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent As expected, the construction is equivalent to the \textit{arithmetic} parsers. Although, on the operators (==, !=, $<$=, $>$=) a \textit{tokenizer} is used since more than one character needs to be recognized to then be parsed. \\ \\
+    At the moment, all the parsers to recognize \textit{arithmetic} and \textit{comparison} operators have been defined. The next step would be creating another parser that encapsulates all of the above parsers to recognize operators in general. How can this be achieved? Well, with the elegance of \textit{alternation} of course! However, before creating the final is\textunderscore operator parser, two parsers to wrap arithmetic and comparison operator separated needs to be defined. Let's see how nice and neat these parsers looks like:
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    is_arith_op :: Parse Operator 
+    is_arith_op = is_multi_op +++ is_div_op 
+                  +++ is_plus_op +++ is_minus_op
+                  
+    is_comp_op :: Parse Operator
+    is_comp_op = is_greaterthan_eq_op +++ is_greaterthan_op 
+                 +++ is_lessthan_eq_op +++ is_lessthan_op 
+                 +++ is_eq_op +++ is_not_eq_op
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent In the \textbf{is\textunderscore comp\textunderscore op} parser the order of the ($<$=, $<$) and ($>=$, $>$) parsers is very important since the monadic \textit{alternation} operator will compute the next parser only if the previous parser fails. Lets suppose that the \textbf{is\textunderscore greaterthan\textunderscore op} parser precedes the \textbf{is\textunderscore greaterthan\textunderscore eq\textunderscore op} parser in the alternation chain. As a consequence, the ($>$=) operator will never be parsed. Why? If the \textbf{is\textunderscore comp\textunderscore op} tries to parse the input string $>$=, then the \textbf{is\textunderscore greaterthan\textunderscore eq\textunderscore op} will be computed by succeeding in parsing just $>$ and ignoring any parser that follows.
+    
+    \begin{center}
+            \textbf{ghci$>$} is\textunderscore comp\textunderscore op \textcolor{red}{``$>$="} \\
+             $\big[$(\textcolor{green}{``GreaterThan"}, \textcolor{red}{``="})$\big]$
+        \end{center}
+    
+    \noindent The same situation applies to the ($<$=, $<$) combination. Therefore, order is important between these operators. \\ \\ 
+    After cleariing this ambiguity is safe to create the final \textbf{is\textunderscore operator} parser which will alternate between the \textit{arithmetic} and \textit{comparison} operator parsers where order will not matter. 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    is_operator :: Parse Operator 
+    is_operator = is_arith_op +++ is_comp_op
+    \end{lstlisting}
+    \end{tcolorbox}
     \subsubsection{While Loop}
     
     \subsection{Combining Statements}
