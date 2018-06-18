@@ -85,9 +85,9 @@
 > isword :: Parse String
 > isword = isletter `bind` \letter -> repeat' isletter `bind` \letters -> result (letter : letters) 
 
-> data Operator = Multi | Div | Plus | Minus | Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual deriving (Show) 
+> data Operator = Multi | Div | Plus | Minus | Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual deriving (Show, Eq) 
 
-> data Condition = Condition String Operator String deriving (Show)
+> data Condition = Condition String Operator String deriving (Show, Eq)
 
 > data AST = DeclarationInt String Int 
 >          | DeclarationString String String
@@ -95,7 +95,7 @@
 >          | Get String
 >          | AssignmentVar String String
 >          | AssignmentOp String String Operator String 
->          | WhileLoop Condition [AST] deriving (Show)
+>          | WhileLoop Condition [AST] deriving (Show, Eq)
 
 > parse_print :: Parse AST 
 > parse_print = tokenize "print(" `bind` \print -> isword `bind` \var -> singleChar ')' `bind` \close -> result (Print var) 
@@ -107,10 +107,10 @@
 > parse_all  = parse_print +++ parse_get +++ parse_declaration_int +++ parse_declaration_string +++ parse_assignment_op +++ parse_assignment_var +++ parse_while_loop
 
 > iterate'        :: Parse AST -> Parse [AST] 
-> iterate' parser  = (parser `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parser `bind` \statements -> result (statement : statements)) +++ result []
+> iterate' parser  = (parser `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parser `bind` \statements -> result (statement : statements))
 
 > my_parser :: Parse [AST]
-> my_parser  = (parse_all `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parse_all `bind` \statements -> result (statement : statements)) +++ result []
+> my_parser  = parse_all `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parse_all `bind` \statements -> result (statement : statements)
 
 > is_number :: Parse String
 > is_number  = ne_number +++ result ""
