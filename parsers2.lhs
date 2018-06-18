@@ -203,8 +203,8 @@
 >                      (Print name)                     -> (getFromStore name) `bindS` errorOrTransform xs
 >                      (Get name)                       -> (getFromStore name) `bindS` errorOrTransform xs
 >                      (AssignmentVar leftvar rightvar) -> (modifyStore leftvar rightvar) `bindS` errorOrTransform xs
-
- my_eval (AssignmentOp leftvar leftopvar operator rightopvar) =
+>                      (AssignmentOp leftvar leftopvar operator rightopvar) -> (modifyStore' leftvar leftopvar operator rightopvar) `bindS` errorOrTransform xs
+ 
  my_eval (WhileLoop condition [])                          = 
 
 > errorOrTransform :: [AST] -> Exceptions Variable -> StateMonad (Exceptions Variable)
@@ -240,15 +240,22 @@
 > getVariable (Raise _) = StringVar "never" "never"
 > getVariable (Return v) = v
 
-> evalOp            :: String -> String -> StateMonad (Exceptions Variable)
-> evalOp left right = (verifyVarRelation left right) `bindS` \decision -> if (decision /= Raise "approve") then returnS (decision) else (getFromStore left) `bindS` \l -> if ((getVarType (getVariable l)) /= "Integer") then returnS (raise "cant do arithmetic on strings") else returnS (raise "yes")  
+> evalOp            :: String -> Operator -> String -> StateMonad (Exceptions Variable)
+> evalOp left op right = (verifyVarRelation left right) `bindS` \decision -> if (decision /= Raise "approve") then returnS (decision) else (getFromStore left) `bindS` \l -> if ((getVarType (getVariable l)) /= "Integer") then returnS (raise "cant do arithmetic on strings") else (getFromStore right) `bindS` \r -> (calculate (getVariable l) op (getVariable r))
 
- calculate :: String -> Operator -> String -> StateMonad (Exceptions Variable)
- calculate a op b = case op of 
-                      (Multi) -> a * b
-                      (Div)   -> a / b
-                      (Plus)  -> a + b
-                      (Minus) -> a - b
+> calculate :: Variable -> Operator -> Variable -> StateMonad (Exceptions Variable)
+> calculate a op b = case op of 
+>                      (Multi) -> returnS (returnE (IntVar "result" ((getIntValue a) * (getIntValue b))))
+>                      (Plus)  -> returnS (returnE (IntVar "result" ((getIntValue a) + (getIntValue b))))
+>                      (Minus) -> returnS (returnE (IntVar "result" ((getIntValue a) - (getIntValue b))))
+
+                    (Div)   -> (getIntValue a) / (getIntValue b)
+
+
+> modifyStore'                       :: String -> String -> Operator -> String -> StateMonad (Exceptions Variable)
+> modifyStore' left leftop op rightop = (getFromStore left) `bindS` \leftVar -> case leftVar of (Raise _)  -> returnS (raise (left ++ " does not exist"))                                                                                 
+>                                                                                               (Return l) -> (evalOp leftop op rightop) `bindS` \rightVarOrExp -> case rightVarOrExp of (Raise _) -> returnS rightVarOrExp
+>                                                                                                                                                                                        (Return r) -> (removeFromStore l) `bindS` \_ -> (assign l r) `bindS` \newVal -> putInStore newVal
 
 > raise  :: Exception -> Exceptions a
 > raise e = Raise e 
@@ -264,6 +271,9 @@
 > getVarType                 :: Variable -> String 
 > getVarType (IntVar _ _)    = "Integer"
 > getVarType (StringVar _ _) = "String"
+
+> getIntValue :: Variable -> Int
+> getIntValue (IntVar _ val) = val 
 
 > assign :: Variable -> Variable -> StateMonad Variable 
 > assign (IntVar lname lval) (IntVar rname rval)       = returnS (IntVar lname rval)
