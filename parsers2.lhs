@@ -215,13 +215,16 @@
 
 
 > modifyStore                    :: String -> String -> StateMonad (Exceptions Variable)
-> modifyStore leftname rightname = (getFromStore leftname) `bindS` \leftExists -> case leftExists of
+> modifyStore leftname rightname = (verifyVarRelation leftname rightname) `bindS` \decision -> if (decision /= (Raise "approve")) then returnS (decision) else (getFromStore leftname) `bindS` \l -> (removeFromStore (getVariable l)) `bindS` \_ -> (getFromStore rightname) `bindS` \r -> (assign (getVariable l) (getVariable r)) `bindS` \newVal -> putInStore newVal                 
+
+> verifyVarRelation :: String -> String -> StateMonad (Exceptions Variable)
+> verifyVarRelation leftname rightname = (getFromStore leftname) `bindS` \leftExists -> case leftExists of
 >                                                                                  (Raise _)  -> returnS (raise (leftname ++ " does not exist"))                                                                                 
 >                                                                                  (Return l) -> (getFromStore rightname) `bindS` \rightExists -> case rightExists of 
 >                                                                                                                                                  (Raise _)  -> returnS (raise (rightname ++ " does not exist"))
 >                                                                                                                                                  (Return r) -> (checkTypeCompat l r) `bindS` \compat -> case compat of
->                                                                                                                                                                                                           (Raise e)  -> returnS (Raise e) 
->                                                                                                                                                                                                           (Return _) -> (removeFromStore l) `bindS` \_ -> (assign l r) `bindS` \newVal -> putInStore newVal                
+>                                                                                                                                                                                                           (Raise e)  -> returnS (Raise e)
+>                                                                                                                                                                                                           (Return _) -> returnS (raise "approve")                                                                                                                                        
 
 > putInStore    :: Variable -> StateMonad (Exceptions Variable) 
 > putInStore var = \store -> case (filter (\v -> (getVarName v) == (getVarName var)) store) of
@@ -232,6 +235,13 @@
 > getFromStore name = getStore `bindS` \store -> case (filter (\v -> getVarName v == name ) store) of 
 >                                                    []     -> returnS (raise ("variable " ++ name ++ " does not exist"))
 >                                                    (x:xs) -> returnS (returnE x)
+
+> getVariable :: (Exceptions Variable) -> Variable 
+> getVariable (Raise _) = StringVar "never" "never"
+> getVariable (Return v) = v
+
+ evalOp            :: String -> String -> StateMonad (Exceptions Varible)
+ evalOp left right = 
 
 > getVarName                 :: Variable -> String
 > getVarName (IntVar name _) = name
@@ -254,7 +264,7 @@
 > getStore :: StateMonad [Variable]
 > getStore = \store -> returnS store store 
 
-> data Exceptions a = Raise Exception | Return a deriving (Show)
+> data Exceptions a = Raise Exception | Return a deriving (Show, Eq)
 > type Exception = String 
 
 > returnE  :: a -> Exceptions a 
