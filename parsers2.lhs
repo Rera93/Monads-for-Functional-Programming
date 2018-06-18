@@ -110,7 +110,7 @@
 > iterate' parser  = (parser `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parser `bind` \statements -> result (statement : statements)) +++ result []
 
 > my_parser :: Parse [AST]
-> my_parser  = parse_all `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parse_all `bind` \statements -> result (statement : statements)
+> my_parser  = (parse_all `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parse_all `bind` \statements -> result (statement : statements)) +++ result []
 
 > is_number :: Parse String
 > is_number  = ne_number +++ result ""
@@ -248,13 +248,18 @@
 >                      (Multi) -> returnS (returnE (IntVar "result" ((getIntValue a) * (getIntValue b))))
 >                      (Plus)  -> returnS (returnE (IntVar "result" ((getIntValue a) + (getIntValue b))))
 >                      (Minus) -> returnS (returnE (IntVar "result" ((getIntValue a) - (getIntValue b))))
-
-                    (Div)   -> (getIntValue a) / (getIntValue b)
+>                      (GreaterThan) -> returnS (raise "no comparison")
+>                      (GreaterThanOrEqual) -> returnS (raise "no comparison")
+>                      (LessThan) -> returnS (raise "no comparison")
+>                      (LessThanOrEqual) -> returnS (raise "no comparison")
+>                      (Equal) -> returnS (raise "no comparison")
+>                      (NotEqual) -> returnS (raise "no comparison")
+>                      (Div)   -> returnS (raise "no comparison")
 
 
 > modifyStore'                       :: String -> String -> Operator -> String -> StateMonad (Exceptions Variable)
 > modifyStore' left leftop op rightop = (getFromStore left) `bindS` \leftVar -> case leftVar of (Raise _)  -> returnS (raise (left ++ " does not exist"))                                                                                 
->                                                                                               (Return l) -> (evalOp leftop op rightop) `bindS` \rightVarOrExp -> case rightVarOrExp of (Raise _) -> returnS rightVarOrExp
+>                                                                                               (Return l) -> (evalOp leftop op rightop) `bindS` \rightVarOrExp -> case rightVarOrExp of (Raise e) -> returnS (Raise e)
 >                                                                                                                                                                                        (Return r) -> (removeFromStore l) `bindS` \_ -> (assign l r) `bindS` \newVal -> putInStore newVal
 
 > raise  :: Exception -> Exceptions a
