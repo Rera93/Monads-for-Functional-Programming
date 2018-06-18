@@ -688,8 +688,42 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent Several \textbf{bind} operators have been used to construct this parser showing how the concept of monadic \textit{sequencing} keeps the steps transparent and provides a smooth transition between the different parsers used.  
+    \noindent Several \textbf{bind} operators have been used to construct this parser showing how the concept of monadic \textit{sequencing} keeps the steps transparent and provides a smooth transition between the different parsers used. 
+    
     \subsubsection{While Loop}
+    
+    The loop in our programming language will be recognized by the \textbf{while} keyword. The loop block has the following format: the \textbf{while} keyword, opening bracket, condition, closing bracket, a space, the \textbf{do} keyword, a space, any of the above statements, a space, and the \textbf{od} keyword. In order to build a parser for a while statement, two additional parsers are required. Firstly, a parser for the condition part having the format: a variable name, a space, a comparison operator, a space and a concrete value. Secondly, a parser which accumulates all the statement parsers that have been defined above. For now, it will be assumed that this parser has already been implemented. The actual implementation is discussed on the section 6.5. \\ \\
+    \noindent Let's start with the construction of the \textit{condition} parser. It's implementation is presented below and it will use the \textbf{is\textunderscore comp\textunderscore op} parser to parse only \textit{comparison} operators: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    is_loop_condition :: Parse Condition
+    is_loop_condition = isword `bind` \leftside -> singleChar ' ' 
+                               `bind` \space1 -> is_comp_op 
+                               `bind` \operator -> singleChar ' ' 
+                               `bind` \space2 -> isword 
+                               `bind` \rightside -> 
+                        result (Condition leftside operator rightside)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent As it was previously stated, the \textbf{my\textunderscore parser} will encapsulate the behavior of all the statement parsers that have been defined. Having defined the parsers \textbf{is\textunderscore loop\textunderscore condition} and \textbf{my\textunderscore parser} will give the green light to accomplishing the task of parsing the while loop.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    parse_while_loop :: Parse AST
+    parse_while_loop = 
+                  tokenize "while(" `bind` \while -> is_loop_condition
+                                    `bind` \condition -> singleChar ')' 
+                                    `bind` \close -> tokenize " do " 
+                                    `bind` \opendo -> (my_parser) 
+                                    `bind` \body -> tokenize " od" 
+                                    `bind` \closedo ->
+                        result (WhileLoop condition body)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent Once again, the bind operator keeps the communication between the present parsers clean and easy to follow. The \textit{tokenizer} is being used to recognize keywords together with spaces or opening brackets: \textbf{``while("}, \textbf{`` do "}, and \textbf{`` od"}. Furthermore, the mission of \textbf{my\textunderscore parser} is to parse any \textit{AST} data which is contained within the while loop without the while loop itself. In section 5.6, the \textbf{parse\textunderscore while\textunderscore loop} will be included in the \textbf{my\textunderscore parser} in order to additionally recognize nested while loops.  
     
     \subsection{Combining Statements}
     
