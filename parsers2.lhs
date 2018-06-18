@@ -165,7 +165,7 @@
 > is_not_eq_op  = tokenize "!=" `bind` \eq -> result NotEqual
 
 > parse_assignment_op :: Parse AST
-> parse_assignment_op  = isword `bind` \leftvar -> tokenize " := " `bind` \eq -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_operator `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
+> parse_assignment_op  = isword `bind` \leftvar -> tokenize " := " `bind` \eq -> isword `bind` \leftopvar -> singleChar ' ' `bind` \space2 -> is_arith_op `bind` \arithop -> singleChar ' ' `bind` \space3 -> isword `bind` \rightopvar -> result (AssignmentOp leftvar leftopvar arithop rightopvar)  
 
 > parse_while_loop :: Parse AST
 > parse_while_loop  = tokenize "while(" `bind` \while -> is_loop_condition `bind` \condition -> singleChar ')' `bind` \close -> tokenize " do " `bind` \opendo -> (my_parser) `bind` \body -> tokenize " od" `bind` \closedo -> result (WhileLoop condition body)
@@ -240,8 +240,22 @@
 > getVariable (Raise _) = StringVar "never" "never"
 > getVariable (Return v) = v
 
- evalOp            :: String -> String -> StateMonad (Exceptions Varible)
- evalOp left right = 
+> evalOp            :: String -> String -> StateMonad (Exceptions Variable)
+> evalOp left right = (verifyVarRelation left right) `bindS` \decision -> if (decision /= Raise "approve") then returnS (decision) else (getFromStore left) `bindS` \l -> if ((getVarType (getVariable l)) /= "Integer") then returnS (raise "cant do arithmetic on strings") else returnS (raise "yes")  
+
+ calculate :: String -> Operator -> String -> StateMonad (Exceptions Variable)
+ calculate a op b = case op of 
+                      (Multi) -> a * b
+                      (Div)   -> a / b
+                      (Plus)  -> a + b
+                      (Minus) -> a - b
+
+> raise  :: Exception -> Exceptions a
+> raise e = Raise e 
+
+> isword' :: Parse String
+> isword'  = word +++ result ""
+>               where word = isletter `bind` \x -> isword' `bind` \xs -> result (x:xs) 
 
 > getVarName                 :: Variable -> String
 > getVarName (IntVar name _) = name
@@ -274,10 +288,3 @@
 > m `bindE` f = case m of 
 >                 Raise e -> Raise e 
 >                 Return a -> f a
-
-> raise  :: Exception -> Exceptions a
-> raise e = Raise e 
-
-> isword' :: Parse String
-> isword'  = word +++ result ""
->               where word = isletter `bind` \x -> isword' `bind` \xs -> result (x:xs) 
