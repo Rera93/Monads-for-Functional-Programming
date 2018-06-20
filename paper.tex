@@ -692,7 +692,7 @@
     
     \subsubsection{While Loop}
     
-    The loop in our programming language will be recognized by the \textbf{while} keyword. The loop block has the following format: the \textbf{while} keyword, opening bracket, condition, closing bracket, a space, the \textbf{do} keyword, a space, any of the above statements, a space, and the \textbf{od} keyword. In order to build a parser for a while statement, two additional parsers are required. Firstly, a parser for the condition part having the format: a variable name, a space, a comparison operator, a space and a concrete value. Secondly, a parser which accumulates all the statement parsers that have been defined above. For now, it will be assumed that this parser has already been implemented. The actual implementation is discussed on the section 6.5. \\ \\
+    The loop in our programming language will be recognized by the \textbf{while} keyword. The loop block has the following format: the \textbf{while} keyword, opening bracket, condition, closing bracket, a space, the \textbf{do} keyword, a space, any of the above statements, a space, and the \textbf{od} keyword. In order to build a parser for a while statement, two additional parsers are required. Firstly, a parser for the condition part having the format: a variable name, a space, a comparison operator, a space and a another variable name. Secondly, a parser which accumulates all the statement parsers that have been defined above. For now, it will be assumed that this parser has already been implemented. The actual implementation is discussed on the section 6.5. \\ \\
     \noindent Let's start with the construction of the \textit{condition} parser. It's implementation is presented below and it will use the \textbf{is\textunderscore comp\textunderscore op} parser to parse only \textit{comparison} operators: 
     
     \begin{tcolorbox}
@@ -738,10 +738,57 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The order in which the parsers are arranged between the \textit{alternating} operators will not matter. Why? This is due to the fact that from the first character parsed on each statement nothing in common will be found between these parsers. Therefore, the parsers will not get in the way of one another and the \textbf{parse\textunderscore all} parser will have guarantees that the \textbf{parse\textunderscore while\textunderscore loop} will always be reached. 
+    \noindent The order in which the parsers are arranged between the \textit{alternating} operators will not matter. Why? This is due to the fact that from the first character parsed on each statement nothing in common will be found between these parsers. Therefore, the parsers will not get in the way of one another and the \textbf{parse\textunderscore all} parser will have guarantees that the \textbf{parse\textunderscore while\textunderscore loop} will always be reached. For example:
+    
+    \begin{center}
+            \textbf{ghci$>$} parse\textunderscore all \textcolor{red}{``while(a $>$ b) do Integer c = 2 od"} \\
+             $\big[$(\textcolor{green}{While (Condition ``a" GreaterThan ``b") $\big[$ DeclarationInt ``a" 2 $\big]$}, \textcolor{red}{``"})$\big]$
+        \end{center}
+    
     
     \subsection{Parsing a program}
     
+    The current status of the program will able to recognize all the possible statement of our language. Nevertheless, it will be unable to parse multiple statements at the same time. Let's have a look at an example: 
+    
+    \begin{center}
+            \textbf{ghci$>$} parse\textunderscore all \textcolor{red}{``Integer a = 2 String b = 'abc'"} \\
+             $\big[$(\textcolor{green}{DeclarationInt ``a" 2}, \textcolor{red}{`` String b = 'abc'"})$\big]$
+        \end{center}
+        
+    \noindent In order to simulate the behavior of a program, more than one statement at a time must be parsed. Before being able to do that, a way to divide statements should be established. Taking into consideration the approach taken in many imperative languages like C++ and Java, the \textbf{semicolon(;)} seems like a plausible way to achieve separation between statements. \\ \\ 
+    Obviously, a new parser needs to be constructed to produce this new behavior. The type of this parser will be \textbf{Parse [AST]} instead of \textbf{Parse AST} since we are trying to parse a list of statements instead of just a single statement. It is already known how to parse a single statement. This parser can be binded with a \textbf{tokenizer} that  recognizes a semicolon. This will produce already half of the desired behavior. What is left is to parse the rest of the list of AST. To do this, a parser that takes an AST parser and return a list of AST parsers was created.
+     
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    iterate :: Parse AST -> Parse [AST] 
+    iterate parser  = (parser `bind` \statement -> tokenize ";" 
+                               `bind` \semicolon -> iterate parser 
+                               `bind` \statements -> 
+                        result (statement : statements)) 
+                        +++ result []
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{iterate} parser will be applied recursively to the final parser by producing the effect of parsing multiple statements which are divided by a tokenizer (which recognizes a semicolon). This brings us to the construction of the final parser that produces the desired behavior of parsing all the statements of the programming language in one go. The \textbf{my\textunderscore parser} is presented below:
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    my_parser :: Parse [AST]
+    my_parser  = parse_all `bind` \statement -> tokenize ";" 
+                           `bind` \semicolon -> iterate parse_all 
+                           `bind` \statements -> 
+                result (statement : statements)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent Initially, the \textbf{parse\textunderscore all} parser is utilized to parse the first statement of the input string. The remaining input to be parsed is binded through the \textit{tokenizer} with a semicolon. After parsing (statement;), the string yet to be parsed is binded with the iterate parser which will take as input the \textbf{parse\textunderscore all} parser and will iterate over itself to produce a list of parsed AST. Finally, the \textbf{result} parser will return the list of AST statements parsed from the input string. \\ \\
+    The parsing of our programming language can be illustrated with the following example which will parse 3 statements and return their corresponding AST.
+    
+    \begin{center}
+            \textbf{ghci$>$} parse\textunderscore all \textcolor{red}{``Integer a = 2;String b = 'rera';a := b;"} \\
+             $\big[$($\big[$\textcolor{green}{DeclarationInt ``a" 2}, \textcolor{green}{DeclarationString ``b" 'rera'}, \textcolor{green}{AssignmentVar ``a" ``b"}$\big]$, \textcolor{red}{``"})]
+        \end{center}
+        
     
     
     
