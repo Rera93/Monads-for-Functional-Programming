@@ -723,9 +723,22 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent Once again, the bind operator keeps the communication between the present parsers clean and easy to follow. The \textit{tokenizer} is being used to recognize keywords together with spaces or opening brackets: \textbf{``while("}, \textbf{`` do "}, and \textbf{`` od"}. Furthermore, the mission of \textbf{my\textunderscore parser} is to parse any \textit{AST} data which is contained within the while loop without the while loop itself. In section 5.6, the \textbf{parse\textunderscore while\textunderscore loop} will be included in the \textbf{my\textunderscore parser} in order to additionally recognize nested while loops.  
+    \noindent Once again, the bind operator keeps the communication between the present parsers clean and easy to follow. The \textit{tokenizer} is being used to recognize keywords together with spaces or opening brackets: \textbf{``while("}, \textbf{`` do "}, and \textbf{`` od"}. Furthermore, the mission of \textbf{my\textunderscore parser} is to parse any \textit{AST} data which is contained within the while loop considering other while loops as well. This will allow the parsing of nested while loops as well.  
     
     \subsection{Combining Statements}
+    
+    In this section, all the parsers that recognized the statements of our language will be combined into one parser called \textbf{parse\textunderscore all}. In order to achieve this, multiple \textit{alternation} operators (+++) were used between the different parsers of the statements.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    parse_all :: Parse AST
+    parse_all  = parse_print +++ parse_get +++ parse_declaration_int 
+                 +++ parse_declaration_string +++ parse_assignment_op 
+                 +++ parse_assignment_var +++ parse_while_loop
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The order in which the parsers are arranged between the \textit{alternating} operators will not matter. Why? This is due to the fact that from the first character parsed on each statement nothing in common will be found between these parsers. Therefore, the parsers will not get in the way of one another and the \textbf{parse\textunderscore all} parser will have guarantees that the \textbf{parse\textunderscore while\textunderscore loop} will always be reached. 
     
     \subsection{Parsing a program}
     

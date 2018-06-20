@@ -107,7 +107,7 @@
 > parse_all  = parse_print +++ parse_get +++ parse_declaration_int +++ parse_declaration_string +++ parse_assignment_op +++ parse_assignment_var +++ parse_while_loop
 
 > iterate'        :: Parse AST -> Parse [AST] 
-> iterate' parser  = (parser `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parser `bind` \statements -> result (statement : statements))
+> iterate' parser  = (parser `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parser `bind` \statements -> result (statement : statements)) +++ result []
 
 > my_parser :: Parse [AST]
 > my_parser  = parse_all `bind` \statement -> tokenize ";" `bind` \semicolon -> iterate' parse_all `bind` \statements -> result (statement : statements)
