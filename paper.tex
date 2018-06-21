@@ -173,26 +173,7 @@
       \end{lstlisting}
     \end{tcolorbox}
     
-    The parser of type \textit{p} takes a state represented as a string ready to be parsed and returns a list containing the value of type \textit{p} parsed from the string and a state represented again as a string that is yet to be parsed. Since a parser may not consume all of its input string, the unconsumed suffix of the input must be returned along with the prefix of the input. As a result, the outcome of a parser must be a list enclosing consumed and unconsumed part of the input string. Additionally, the case when an empty list is returned is treated as a failure \cite{pearls}. On the other hand, an non-empty list is marked as a success. Lets take into consideration a straightforward parser for multiplication operations.
-    
-    \begin{center}
-        \textbf{data} Expr = Const \textit{Int} $\vert$ Multi \textit{Expr} \textit{Expr} 
-    \end{center}
-    
-    Next, lets create a parser of type Expr. 
-    
-    \begin{center}
-        parseExpr :: \textbf{Parse} \textit{Expr} 
-    \end{center}
-    
-    The following examples take as input the state defined as a string. 
-    
-    \begin{lstlisting}[language=Haskell]
-        parseExpr "27 or twentyseven" = [(Const 27, " or twentyseven")] 
-        parseExpr "twentyseven"       = []
-    \end{lstlisting}
-    
-    For simplicity, the focus will remain on parsers that either fail and return an empty list of results, or succeed and return a singleton list.
+    The parser of type \textit{p} takes a state represented as a string ready to be parsed and returns a list containing the value of type \textit{p} parsed from the string and a state represented again as a string that is yet to be parsed. Since a parser may not consume all of its input string, the unconsumed suffix of the input must be returned along with the prefix of the input. As a result, the outcome of a parser must be a list enclosing consumed and unconsumed part of the input string. Additionally, the case when an empty list is returned is treated as a failure \cite{pearls}. On the other hand, an non-empty list is marked as a success.
     
     \subsection{Primitive Parsers}
     
@@ -457,6 +438,8 @@
         \textbf{while}(\textit{condition}) \textbf{do} \textit{statements} \textbf{od}
     \end{itemize}
     
+    \noindent Additionally, on section 7 the created parser will be evaluated with the usage of the \textbf{State} and \textbf{Exception} monads. 
+    
     \subsection{Algebraic Data Types}
     
     In order to parse any of the statements of this simple programming language, an algebraic data type type namely \textbf{AST} needs to be created. This \textbf{AST} will provide a tree representation of the abstract structure of the programming language. The \textit{Abstract Syntax Tree} is portrayed through Haskell's algebraic data types and its implementation is illustrated below:
@@ -508,10 +491,6 @@
         \end{center}
     
     \noindent Therefore, the \textit{tokenizer} will come in handy in parsing any keyword the programmer wants. In the upcoming sections, we will see how the tokenize can be used as an asset to build the parsers of each statement. 
-    
-    \subsection{Repetition}
-    
-    At the moment the isword parser
     
     \subsection{Statements}
     
@@ -788,6 +767,16 @@
             \textbf{ghci$>$} parse\textunderscore all \textcolor{red}{``Integer a = 2;String b = 'rera';a := b;"} \\
              $\big[$($\big[$\textcolor{green}{DeclarationInt ``a" 2}, \textcolor{green}{DeclarationString ``b" 'rera'}, \textcolor{green}{AssignmentVar ``a" ``b"}$\big]$, \textcolor{red}{``"})]
         \end{center}
+        
+    \section{Evaluator}
+    
+    In this section, the outcome of \textbf{my\textunderscore parser} will be evaluated with the utilization of the \textit{state} and \textit{exception} monads. These monads have not been imported from the Haskell language but have been re-created together with their accompanying monadic behavior. In addition, the approach taken to evaluate each statement of the simple programming language is observed and the helper monadic functions that were constructed are discussed in detail. Let's dive in. 
+    
+    \subsection{State}
+    
+    \subsection{Exception}
+    
+    \subsection{Get and Put}
         
     
     
