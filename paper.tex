@@ -770,9 +770,47 @@
         
     \section{Evaluator}
     
-    In this section, the outcome of \textbf{my\textunderscore parser} will be evaluated with the utilization of the \textit{state} and \textit{exception} monads. These monads have not been imported from the Haskell language but have been re-created together with their accompanying monadic behavior. In addition, the approach taken to evaluate each statement of the simple programming language is observed and the helper monadic functions that were constructed are discussed in detail. Let's dive in. 
+    In this section, the outcome of \textbf{my\textunderscore parser} will be evaluated with the utilization of the \textit{state} monad and errors will be handled with the \textit{exception} monad. These monads have not been imported from the Haskell language but have been re-created together with their accompanying monadic behavior. In addition, the approach taken to evaluate each statement of the simple programming language is observed and the helper monadic functions that were constructed are discussed in detail. Let's dive in. 
     
     \subsection{State}
+    
+    The state in functional programming is mirrored by the creation of a type that illustrate computations that are performed on a state. 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    type StateMonad a = Store -> (a, Store) 
+    \end{lstlisting}
+    \end{tcolorbox}
+    \noindent The idea behind the state monad of type \textit{a} is that it takes as input the \textit{old state} and returns a tuple containing the value of a type \textit{a} and the \textit{new state}. A small adjustment was made in this program by replacing the state with a store which in turn is a list of \textit{Variable}. \textit{Variable} is a algebraic data type and will contain a composition of only two value constructors \textbf{IntVar} and \textbf{StringVar} since in our programming language only two types of values are allowed (\textit{Integers} and \textit{Strings}). 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    type Store = [Variable]
+    data Variable = IntVar String Int 
+                  | StringVar String String 
+                      deriving (Show, Eq) 
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The type constructor StateMonad is not a monad yet. Recalling from section 3, a monad is achieved by additionally defining the \textit{bind} operator and the \textit{return} function for the StateMonad and making sure that the monadic laws hold. Let's observe how the \textbf{bindS} and \textbf{returnS} are constructed and implemented: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    returnS         :: a -> StateMonad a 
+    returnS a store = (a, store)
+    \end{lstlisting}
+    \end{tcolorbox}
+    \noindent The \textbf{returnS} function will take as input a value of type \textit{a} and a \textit{store} and will simlpy return a tuple containing the value of type \textit{a} and the unmodified \textit{store}.
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    bindS      :: StateMonad a -> (a -> StateMonad b) -> StateMonad b
+    m `bindS` f = \store -> let (x, store') = m store in
+                              let m' = f x in
+                                 m' store'  
+    \end{lstlisting}
+    \end{tcolorbox}
+    \noindent The \textbf{bindS} operator will perform computation \textit{m} in the initial \textit{store} and yield a tuple containing a value \textit{x} and the intermediate \textit{store'}. Afterwards, it perform computation \textit{f x} or \textit{m'} on the intermediate \textit{store'} thus by yielding the resulting value and the final version of the \textit{store}. 
+    
     
     \subsection{Exception}
     
