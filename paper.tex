@@ -898,7 +898,78 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The \textbf{evaluate} function will received an \textit{input string} and a \textit{Store} to then produce a tuple containing a \textit{Raised Exception} or the corresponding \textit{Variable} and the \textit{Store} (modified or not). Initially, the \textbf{case of} construct is utilized to observe the possible outcome from applying the \textbf{my\textunderscore parser} defined in section 5.5 to the specified \textit{input string}. Recalling from the implementation of \textbf{Parser} monad, the outcome is a list containing a tuple of parsed input and remaining unparsed input. Consequently, if an empty list is returned then a tuple will be returned containing the raised exception that nothing was parsed and the unchanged \textit{Store}. In case the list is non empty, it will mean that something was parsed. Therefore, the parsed statement being a list (according to the \textbf{Parse [AST]}) is taken out and placed as an input value to the function \textbf{transform}. Why use \textbf{transform}? In order to evaluate a program, the statements need to be parsed separately. That's where the \textbf{transform} function comes in play by taking each parsed statement of the list to then evaluate it and use the recursive property that comes along with lists to continue the evaluation for the remaining parsed statements of the list.
+    \noindent The \textbf{evaluate} function will received an \textit{input string} and a \textit{Store} to then produce a tuple containing a \textit{Raised Exception} or the corresponding \textit{Variable} and the \textit{Store} (modified or not). Initially, the \textbf{case of} construct is utilized to observe the possible outcome from applying the \textbf{my\textunderscore parser} defined in section 5.5 to the specified \textit{input string}. Recalling from the implementation of \textbf{Parser} monad, the outcome is a list containing a tuple of parsed input and remaining unparsed input. Consequently, if an empty list is returned then a tuple will be returned containing the raised exception that nothing was parsed and the unchanged \textit{Store}. In case the list is non empty, it will mean that something was parsed. Therefore, the parsed statement being a list (according to the \textbf{Parse [AST]}) is taken out and placed as an input value to the function \textbf{transform}. Why use \textbf{transform}? In order to evaluate a program, the statements need to be parsed separately. That's where the \textbf{transform} function comes in play by taking each parsed statement of the list to then evaluate it and use the recursive property that comes along with lists to continue the evaluation for the remaining parsed statements of the list. Let's have a look at implementation of \textbf{transform}:
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    transform        :: [AST] -> StateMonad (Exceptions Variable) 
+    transform []     = returnS (raise "success")
+    transform (x:xs) = case x of 
+    (DeclarationString name value) -> (putInStore (StringVar name value))
+                                         `bindS` errorOrTransform xs
+    (DeclarationInt name value)    -> (putInStore (IntVar name value))
+                                         `bindS` errorOrTransform xs
+    (Print name)                   -> (getFromStore name)
+                                         `bindS` errorOrTransform xs
+    (Get name)                     -> (getFromStore name)
+                                         `bindS` errorOrTransform xs
+    (AssignmentVar leftvar rightvar)-> (modifyStore leftvar rightvar)
+                                         `bindS` errorOrTransform xs
+    (AssignmentOp leftvar leftopvar operator rightopvar) ->
+                (modifyStore' leftvar leftopvar operator rightopvar) 
+                                         `bindS` errorOrTransform xs
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{transform} will take a \textit{list of ASTs} and a \textit{Store} to then produce the same outcome as in the \textbf{evaluate} function. Since a list is taken as an input, \textbf{transform} will pattern match on it. If the \textit{list of ASTs} is empty then a tuple is returned containing a raised exception with an informative answer notifying of success. However, the \textbf{evaluate} function made sure that the \textbf{transform} is utilized only when the list is non empty. Then why is this here? This is needed when all the ASTs of the list have been evaluated thus by maintaining the correct return value of the \textbf{transform} function. In case the list is non empty then the \textbf{case of} construct is applied to the \textit{first AST} of the list of parsed statements. Depending on the type of the \textit{AST}, the corresponding evalulator construct is applied. Furthermore, the \textbf{bindS} operator is used to bind each evaluator construct with the function \textbf{errorOrTransform} which will take as an input the remaining ASTs of the list. As the name suggests the main purpose of the function is to either raise the corresponding exception or continue transforming the rest of the list. The implementation of the \textbf{errorOrTransform} function is presented below: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    errorOrTransform :: [AST] -> Exceptions Variable 
+                                     -> StateMonad (Exceptions Variable)
+    errorOrTransform []      = \e -> returnS (e)
+    errorOrTransform astList = \e -> case e of 
+                                      (Raise _)  -> returnS (e) 
+                                      (Return _) -> transform astList 
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{errorOrTransform} will take as an input a \textit{list of ASTs}, an \textit{Exception Variable}, and a \textit{Store} to then return the same output type as the \textbf{transform} function. The function will pattern match on the list of ASTs. If the list is empty, then the \textbf{returnS} will be applied to the \textit{Exception Variable} captured by the \textbf{bindS} of the \textbf{transform}. Otherwise, if the list is non empty then a \textbf{case of} construct is applied to the \textit{Exception Variable} captured by \textbf{bindS} (as in the previous case). If an exception was raised then the same operation that was performed for the list being empty is executed also here. However, if something is returned then the \textit{transformation} needs to continue for the rest of the list. In this way, all the ASTs of the list will be evaluated while keeping in mind the previous evaluations. Let's have a look at a few examples to illustrate the \textit{evaluator} in practice:
+    
+    \begin{center}
+            \textbf{ghci$>$} \textbf{evaluate} \textcolor{red}{``Integer a = 5;Integer b = 10;a := a + b;"} \textcolor{green}{ $\big[$ $\big]$} \\
+             \textbf{(Return (IntVar ``a" 15)},\textcolor{green}{$\big[$IntVar ``a" 15, IntVar ``b" 10$\big]$}\textbf{)}
+        \end{center}
+        
+        \begin{center}
+            \textbf{ghci$>$} \textbf{evaluate} \textcolor{red}{``Integer a = 5;a := a + b;Integer b = 10;"} \textcolor{green}{ $\big[$ $\big]$} \\
+             \textbf{(Raise \textcolor{red}{``b does not exist"}},\textcolor{green}{$\big[$IntVar ``a" 5$\big]$}\textbf{)}
+        \end{center}
+        
+         \begin{center}
+            \textbf{ghci$>$} \textbf{evaluate} \textcolor{red}{``String a = `rera';String a = 'RERA';"} \textcolor{green}{ $\big[$ $\big]$} \\
+             \textbf{(Raise \textcolor{red}{``variable a already exist"}},\textcolor{green}{$\big[$StringVar ``a" ` `` \textbf{`}rera\textbf{'} "$\big]$}\textbf{)}
+        \end{center}
+    
+    \begin{center}
+            \textbf{ghci$>$} \textbf{evaluate} \textcolor{red}{``String a = `rera';a := b;"} \textcolor{green}{ $\big[$StringVar ``b" ``RERA" $\big]$} \\
+             \textbf{(Return (StringVar ``a" ``RERA")},\textcolor{green}{$\big[$StringVar ``a" ``\textbf{`}RERA\textbf{'}", StringVar ``b" ``\textbf{`}RERA\textbf{'}"$\big]$}\textbf{)}
+        \end{center}
+        
+        \begin{center}
+            \textbf{ghci$>$} \textbf{evaluate} \textcolor{red}{``IntVar a = 2;a := b $<$ c;"} \textcolor{green}{ $\big[$IntVar ``b" 2, IntVar ``c" 4 $\big]$} \\
+             \textbf{(Raise \textcolor{red}{``no parse"}},\textcolor{green}{$\big[$IntVar ``b" 2, IntVar ``b" 4$\big]$}\textbf{)}
+        \end{center}
+        
+    \noindent There is a public GitHub repository where all the above mentioned snippets of code can be viewed and these examples or more can be tested. The link to the repository is the following:
+    \begin{center}
+        \textbf{https://github.com/Rera93/Monads-for-Functional-Programming/blob/master/parsers2.lhs}
+    \end{center}
+    
+    
+    
+    
+    %The evaluator constructs for the integer or string declaration, printing, and getting were discussed in the previous section. Nevertheless, the simple and complicated assignment statements are using an undefined evaluator constructs (\textit{modifyStore} and \textit{modifyStore'}).  %      
     
     \begin{thebibliography}{9}
     \bibitem{categorytheory} 
