@@ -825,7 +825,7 @@
     
     
     \subsection{The Store}
-    In order to be able to evaluate any of the statements, the store needs to be considered as a point of reference. Lets recall the form of the simple variable assignment statement \textit{a := b}. If this statement is to be evaluated then the store has to be first checked to see if variables \textit{a} and \textit{b} exist. Afterwards, it has to assign the value of the variable \textit{b} into the variable \textit{a} and then put the variable \textit{b} in the store with the updated value. In other words, the two most important monadic functions to be constructed are \textbf{getting} variables from the store and \textbf{putting} variable in the store. How can this be achieved? The StateMonad can be exploited to allow the store to accessed and modified. Let's see how this is done in the two following subsections.
+    In order to be able to evaluate any of the statements, the store needs to be considered as a point of reference. Lets recall the form of the simple variable assignment statement \textit{a := b}. If this statement is to be evaluated then the store has to be first checked to see if variables \textit{a} and \textit{b} exist. Afterwards, it has to assign the value of the variable \textit{b} into the variable \textit{a} and then put the variable \textit{b} in the store with the updated value. In other words, the three most important monadic functions to be constructed are \textbf{getting} a variable from the store, \textbf{putting} variable in the store, and \textbf{removing} a variable from the store. How can this be achieved? The StateMonad can be exploited to allow the store to accessed and modified. Let's see how this is done in the two following subsections.
     
     \subsubsection{Putting a Variable in the Store}
     
@@ -874,9 +874,31 @@
     
     \noindent The \textbf{getFromStore} function is taking the name of the variable as a \textit{String} and a \textit{Store} to then return a tuple containing an Exception data type and the unmodified \textit{Store}. As in the \textbf{putInStore} function, the \textit{Exception} data either raises an exception or returns a \textit{Variable}. The approach taken here is similar to the one taken when constructing the \textbf{putInStore} function, besides some modification to the outcomes of the \textbf{case of} construct. If an empty list is returned then a tuple is returned containing a raised exception saying that the variable requested does no exist and the unchanged store. Otherwise, if a list is non empty then a tuple is returned containing the corresponding \textit{Variable} returned and the unmodified store. 
     
+    \subsubsection{Removing a Variable from the Store}
     
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    removeFromStore    :: Variable -> StateMonad () 
+    removeFromStore var = \store -> returnS () (delete var store) 
+    \end{lstlisting}
+    \end{tcolorbox}
     
+    \noindent The \textbf{removeFromStore} function will take a \textit{Variable} and a \textit{Store} to then return a tuple containing \textit{nothing} and the \textit{Store} without the previously specified \textit{Variable}. The implementation of this monadic function is very straightforward. The only functionality needed is the \textbf{delete} from \textit{Data.List} which will directly remove the \textit{Variable} from the \textit{Store}.  
     
+    \subsection{Evaluating Parsed Statements}
+    
+    Having constructed the most important operations \textit{to} and \textit{from} the Store will give the green light to the evaluation of the statements of our simple programming language. Let's see how the evaluate function is constructed: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    evaluate :: State -> StateMonad (Exceptions Variable)
+    evaluate input = case my_parser input of
+                       []    -> returnS (raise "no parse") 
+                       [(list,_)] -> transform list
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{evaluate} function will received an \textit{input string} and a \textit{Store} to then produce a tuple containing a \textit{Raised Exception} or the corresponding \textit{Variable} and the \textit{Store} (modified or not). Initially, the \textbf{case of} construct is utilized to observe the possible outcome from applying the \textbf{my\textunderscore parser} defined in section 5.5 to the specified \textit{input string}. Recalling from the implementation of \textbf{Parser} monad, the outcome is a list containing a tuple of parsed input and remaining unparsed input. Consequently, if an empty list is returned then a tuple will be returned containing the raised exception that nothing was parsed and the unchanged \textit{Store}. In case the list is non empty, it will mean that something was parsed. Therefore, the parsed statement being a list (according to the \textbf{Parse [AST]}) is taken out and placed as an input value to the function \textbf{transform}. Why use \textbf{transform}? In order to evaluate a program, the statements need to be parsed separately. That's where the \textbf{transform} function comes in play by taking each parsed statement of the list to then evaluate it and use the recursive property that comes along with lists to continue the evaluation for the remaining parsed statements of the list.
     
     \begin{thebibliography}{9}
     \bibitem{categorytheory} 
