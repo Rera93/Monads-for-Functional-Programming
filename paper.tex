@@ -23,7 +23,7 @@
     
     \section{Introduction}
     
-    Pure function languages like Haskell rule out side effects. Why? Firstly, to allow unrestricted application of program transformation and equation logic. Secondly, being a non-strict language, Haskell's order of side effects is undefined. The aim of this paper is to show how monads can be used to capture impure effects into a pure language. The code snippets attached to this paper are implemented in Haskell. Section 2 will provide an overview on the characteristics of the language being used. Section 3 describes the construction of a monad, the various monadic flavors and the Maybe Monad as an illustrative example to get the reader's feet wet with the complex concept of a Monadic value. The application of monads is demonstrated with one case study to construct recursive decent parsers. \textit{(more cases studies to be added on next intermediate presentation)} 
+    Pure function languages like Haskell rule out side effects. Why? Firstly, to allow unrestricted application of program transformation and equation logic. Secondly, being a non-strict language, Haskell's order of side effects is undefined. The aim of this paper is to show how monads can be used to capture impure effects into a pure language. The code snippets attached to this paper are implemented in Haskell. Section 2 will provide an overview on the characteristics of the language being used. Section 3 describes the construction of a monad, the various monadic flavors and the Maybe Monad as an illustrative example to get the reader's feet wet with the complex concept of a Monadic value. In section 4, the construction of a parser with the \textit{Parser} Monad is discussed in detail and the benefits of monadic \textit{alternation} and \textit{sequencing} in parsing are observed. The application of monads is demonstrated in section 5 through a case study to build a parser in practice for a simple programming language. In section 6, the case study is extended with an evaluator for the parsed language using the \textit{State} monad and error handling in included by utilizing the \textit{Exception} Monad. 
     
     \section{Haskell}
     
@@ -74,7 +74,7 @@
         \begin{center}
             \textbf{data} Failure \textit{a} = Fail $\vert$ Success \textit{a} 
         \end{center}
-        \item \textbf{Exception Monad} - Either returns a values or raises an exception. Since it is up to the developer to implement such a monad, he/she may decide to ignore the first exception and throw an exception only if a second one is found. 
+        \item \textbf{Exception Monad} - An efficient way of handling errors by either raising an exception or returning the corresponding value. 
         \begin{center}
             \textbf{data} Exc \textit{e a} = Exception \textit{e} $\vert$ OK \textit{a}
         \end{center}
@@ -138,25 +138,6 @@
         \item failing situations by ensuring that upcoming actions are aborted and the whole expression is evaluated to a failure
     \end{itemize}
     Therefore, it is essential to understand how the Maybe types work as a Monad in order to then comprehend more complicated Monads like \textit{State} and \textit{IO}.
-    
-    \section{Lists}
-    This section shows how the monadic behaviour of lists can be used in our advantage to explicitly demonstrate non-determinism. \\ \\
-    In general, lists can be both \textit{deterministic} and \textit{non-deterministic}. For instance, take into consideration a list containing just one element \textbf{[27]}. Clearly, the former list is deterministic since it accommodates a single value and it is apparent that the value equals to 27. On the other hand, a list enclosing more than one element \textbf{[27, 6, 21]} introduces non-deterministic behaviour since it can have many outcomes at the same time. \\ \\
-    The notion of \textit{non-determinism} can be decoded smoothly in monadic terms. Below is illustrate how the Monad instance is defined for a list: \\
-    \begin{lstlisting}[language=Haskell]
-        instance Monad [] where
-            return x = [x]
-            xs >>= f = concat (map f xs)
-    \end{lstlisting} 
-    The \textbf{return} wraps a values of type \textit{x} and places it into the special context of a list. In other words, it creates a list that contains only that single value. Afterwards, this not so simple value anymore can interact with other values to produce a non-deterministic nature.   \\ \\
-    The bind operator \textbf{($>>$=)} is taking a monadic list, removing its elements from the monadic context and feeding them into a function that takes normal values and returns again monadic list.  In order to remove the confusion, the example below can be used to clarify the complexity of the bind operator: \\
-    \begin{lstlisting}[language=Haskell]
-       ghci> [3, 6, 10] >>= \x -> [x, 2*x]
-       [3, 6, 6, 12, 10, 20]
-    \end{lstlisting} \\
-    Therefore, the purpose of the bind operator is to facilitate the non-deterministic attitude of lists. \textbf{[3, 6, 10]} is a non-deterministic list that is being feed into a function that itself returns a non-deterministic list. Hence, the final result will be a non-deterministic list containing all the possible combinations between the elements of the list \textbf{[3, 6, 10]} and the passing of these values to the function \textbf{\textbackslash x $\rightarrow$ [x, 2*x]}. The job of the function is straightforward. The function generates two outcomes for each element of the input list, the original value and the value multiplied by 2. 
-    
-    
     
     \section{Parsers}
     Monads are valuable in modeling sequencing and alternation in recursive decent parsers. The methods described in this section are extensible since parsers are treated as first-class values and combinators are defined in Haskell. Additionally, it portrays the purity of functional programming.
@@ -416,9 +397,6 @@
     \end{tcolorbox}
     
     Therefore, both the \textit{List} and the \textit{Maybe} monad in combination with \textit{case of} notation helped in upgrading the behavior of the \textbf{plus} parser. 
-    
-    
-    \subsection{Conclusions}
     
     \section{A Case Study}
     
@@ -812,11 +790,70 @@
     \noindent The \textbf{bindS} operator will perform computation \textit{m} in the initial \textit{store} and yield a tuple containing a value \textit{x} and the intermediate \textit{store'}. Afterwards, it perform computation \textit{f x} or \textit{m'} on the intermediate \textit{store'} thus by yielding the resulting value and the final version of the \textit{store}. 
     
     
-    \subsection{Exception}
+    \subsection{Exceptions}
     
-    \subsection{Get and Put}
-        
+    Every program will throw errors from now and then. That's why error handling is an important feature and has to be included in our simple programming language. The \textit{Exception} monad provides an efficient way of handling errors for a computation by either raising an exception or returning the corresponding value.  
     
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    data Exceptions a = Raise Exception | Return a deriving (Show, Eq)
+    type Exception = String 
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent In order to retrieve a monad out of the Exceptions type constructor, the \textbf{bindE} operator and the \textbf{returnE} function have been defined below: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    returnE  :: a -> Exceptions a 
+    returnE a = Return a
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The function \textbf{returnE} takes as an input a value of type \textit{a} and simply returns that value without raising an exception.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    bindE      :: Exceptions a -> (a -> Exceptions b) -> Exceptions b
+    m `bindE` f = case m of 
+                    Raise e -> Raise e 
+                    Return a -> f a
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{bindE} operator will initially examine the outcome of the computation \textit{m} through the \textbf{case of} construct. If \textit{m} raises an exception then the corresponding exception will be re-raised. Otherwise, if \textit{m} returns a value then function \textit{f} will be applied to that value. 
+    
+    
+    \subsection{The Store}
+    In order to be able to evaluate any of the statements, the store needs to be considered as a point of reference. Lets recall the form of the simple variable assignment statement \textit{a := b}. If this statement is to be evaluated then the store has to be first checked to see if variables \textit{a} and \textit{b} exist. Afterwards, it has to assign the value of the variable \textit{b} into the variable \textit{a} and then put the variable \textit{b} in the store with the updated value. In other words, the two most important monadic functions to be constructed are \textbf{getting} variables from the store and \textbf{putting} variable in the store. How can this be achieved? The StateMonad can be exploited to allow the store to accessed and modified. Let's see how this is done in the two following subsections.
+    
+    \subsubsection{Putting a Variable in the Store}
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    putInStore    :: Variable -> StateMonad (Exceptions Variable) 
+    putInStore var = \store -> 
+     case (filter (\v -> (getVarName v) == (getVarName var)) store) of
+      []     -> returnS (returnE var) (var : store)                               
+      (x:xs) -> returnS (raise ("variable " ++ (getVarName var)
+                                          ++ " already exists")) store
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{putInStore} function is taking a \textit{Variable} and a \textit{Store} to then return a tuple containing an Exception data type and the \textit{Store} (modified or not). The Exception data either raises an \textit{Exception} or returns a \textit{Variable}. The \textbf{case of} construct is used taking the result of a filter being applied to the \textit{Store}. The filter will check if the \textit{Store} contains the \textit{Variable} provided as an input in the \textbf{putInStore} function. This look up is done on the name of the \textit{Variable} which is achieved by applying the function \textbf{getVarName} to the \textit{Variable}. The implementation of the \textbf{getVarName} follows below: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    getVarName                 :: Variable -> String
+    getVarName (IntVar name _) = name
+    getVarName (StringVar name _) = name
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    
+    \noindent Applying the filter to the \textit{store} list will result in two outcomes. If the list is empty means that the variable does not exist and it can be safely put in the store. Thus, a tuple is returned containing the new \textit{Variable} and the modified store with the new \textit{Variable} included. Otherwise if the list is non empty then a tuple is returned containing a raised exception saying that the variable name already exists and the unmodified store as a result. 
+    
+    \subsubsection{Getting a Variable from the Store}
     
     
     \begin{thebibliography}{9}
