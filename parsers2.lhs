@@ -238,7 +238,7 @@
 
 > getVariable :: (Exceptions Variable) -> Variable 
 > getVariable (Raise _) = StringVar "never" "never"
-> getVariable (Return v) = v
+> getVariable (Return v) = v 
 
 > evalOp            :: String -> Operator -> String -> StateMonad (Exceptions Variable)
 > evalOp left op right = (verifyVarRelation left right) `bindS` \decision -> if (decision /= Raise "approve") then returnS (decision) else (getFromStore left) `bindS` \l -> if ((getVarType (getVariable l)) /= "Integer") then returnS (raise "cant do arithmetic on strings") else (getFromStore right) `bindS` \r -> (calculate (getVariable l) op (getVariable r))
