@@ -840,7 +840,13 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The \textbf{putInStore} function is taking a \textit{Variable} and a \textit{Store} to then return a tuple containing an Exception data type and the \textit{Store} (modified or not). The Exception data either raises an \textit{Exception} or returns a \textit{Variable}. The \textbf{case of} construct is used taking the result of a filter being applied to the \textit{Store}. The filter will check if the \textit{Store} contains the \textit{Variable} provided as an input in the \textbf{putInStore} function. This look up is done on the name of the \textit{Variable} which is achieved by applying the function \textbf{getVarName} to the \textit{Variable}. The implementation of the \textbf{getVarName} follows below: 
+    \noindent The \textbf{putInStore} function is taking a \textit{Variable} and a \textit{Store} to then return a tuple containing an Exception data type and the \textit{Store} (modified or not). The Exception data either raises an \textit{Exception} or returns a \textit{Variable}. The \textbf{case of} construct is used taking the result of a filter being applied to the \textit{Store}. The filter will check if the \textit{Store} contains the \textit{Variable} provided as an input in the \textbf{putInStore} function. This look up is done on the name of the \textit{Variable} which is achieved by applying the function \textbf{getVarName} to the \textit{Variable}. If the check would be performed directly on the \textit{Variable} type then the filter will produce unwanted behavior and allow \textit{Variable} in the following example to be placed in the \textit{Store}. 
+    \begin{center}
+            \textbf{ghci$>$} putInStore \textcolor{red}{(IntVar ``a" 5)} \textcolor{green}{ $\big[$ IntVar "a" 6 $\big]$} \\
+             (Return (IntVar ``a" 5),\textcolor{green}{$\big[$IntVar ``a" 5, IntVar ``a" 6$\big]$})
+        \end{center}
+    
+    \noindent This is not the behavior that it is desired since the store now contains two identical variable names with different values. Consequently, the implementation of the \textbf{getVarName} follows below: 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -850,10 +856,25 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    
-    \noindent Applying the filter to the \textit{store} list will result in two outcomes. If the list is empty means that the variable does not exist and it can be safely put in the store. Thus, a tuple is returned containing the new \textit{Variable} and the modified store with the new \textit{Variable} included. Otherwise if the list is non empty then a tuple is returned containing a raised exception saying that the variable name already exists and the unmodified store as a result. 
+    \noindent Applying the filter to the \textit{store} list will result in two outcomes. If the list is empty means that the variable does not exist and it can be safely put in the store. Thus, a tuple is returned containing the new \textit{Variable} and the modified store with the new \textit{Variable} included. Otherwise if the list is non empty then a tuple is returned containing a raised exception saying that the variable name already exists and the unmodified store as a result.
     
     \subsubsection{Getting a Variable from the Store}
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    getFromStore      :: String -> StateMonad (Exceptions Variable)
+    getFromStore name = getStore `bindS` \store -> 
+     case (filter (\v -> getVarName v == name ) store) of 
+       []  -> returnS (raise ("variable " ++ name ++ " does not exist"))
+    (x:xs) -> returnS (returnE x)
+    
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{getFromStore} function is taking the name of the variable as a \textit{String} and a \textit{Store} to then return a tuple containing an Exception data type and the \textit{Store} (modified or not).
+    
+    
+    
     
     
     \begin{thebibliography}{9}

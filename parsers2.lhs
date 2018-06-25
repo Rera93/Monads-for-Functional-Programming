@@ -232,9 +232,9 @@
 >                              (x:xs) -> returnS (raise ("variable " ++ (getVarName var) ++ " already exists")) store
 
 > getFromStore      :: String -> StateMonad (Exceptions Variable)
-> getFromStore name = getStore `bindS` \store -> case (filter (\v -> getVarName v == name ) store) of 
->                                                    []     -> returnS (raise ("variable " ++ name ++ " does not exist"))
->                                                    (x:xs) -> returnS (returnE x)
+> getFromStore name = \store -> case (filter (\v -> getVarName v == name ) store) of 
+>                                                    []     -> returnS (raise ("variable " ++ name ++ " does not exist")) store 
+>                                                    (x:xs) -> returnS (returnE x) store
 
 > getVariable :: (Exceptions Variable) -> Variable 
 > getVariable (Raise _) = StringVar "never" "never"
