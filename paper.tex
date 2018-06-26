@@ -885,7 +885,106 @@
     
     \noindent The \textbf{removeFromStore} function will take a \textit{Variable} and a \textit{Store} to then return a tuple containing \textit{nothing} and the \textit{Store} without the previously specified \textit{Variable}. The implementation of this monadic function is very straightforward. The only functionality needed is the \textbf{delete} from \textit{Data.List} which will directly remove the \textit{Variable} from the \textit{Store}.  
     
-    \subsection{Evaluating Parsed Statements}
+    \subsection{Evaluating Variable Assignment}
+    
+    The default \textit{Store} operations defined on the previous subsection will be applied in this subsection to evaluate both cases of the variable assignments. Additionally, some helper functions are needed on both sides to smooth the evaluation process. 
+    
+    \subsubsection{Helper Evaluators}
+    
+    One of these helper evaluators is checking if both sides of the equal operator are of the same type (\textit{Integers} or \textit{Strings}). This is done through the \textbf{verifyVarRelation} function but \textbf{checkTypeCompat} function needs to be defined first assuming that the \textit{Variable}s have been retrieved from the \textit{Store}. 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    checkTypeCompat :: Variable -> Variable -> StateMonad (Exceptions ())
+    checkTypeCompat varleft varright = 
+      if (getVarType varleft) == (getVarType varright) 
+        then returnS (returnE ())  
+      else returnS (raise "Incompatible types")
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{checkTypeCompat} will check if the types of the left variable and the right variable are equivalent. If that is the case then no exception is returned while if they are not equal then an exception is raised notifying of incompatible types. \\ \\
+    Moreover, the \textbf{verifyVarRelation} function is constructed as follows: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    verifyVarRelation :: String -> String ->
+                         StateMonad (Exceptions Variable)
+    verifyVarRelation leftname rightname = 
+    (getFromStore leftname) `bindS` \leftExists -> 
+        case leftExists of
+          (Raise _)  -> returnS (raise (leftname ++ " does not exist"))                               
+          (Return l) -> (getFromStore rightname) `bindS` \rightExists -> 
+        case rightExists of                                                                           
+          (Raise _)  -> returnS (raise (rightname ++ " does not exist")
+          (Return r) -> (checkTypeCompat l r) `bindS` \compat -> 
+        case compat of 
+          (Raise e)  -> returnS (Raise e)
+          (Return _) -> returnS (raise "approve")
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{verifyVarRelation} will initially attempt to get from the store the name of the left variable and through the \textbf{bindS} operator the outcome will be passed as an input to a function returning a \textbf{case of} construct on that input. If the outcome of \textbf{getFromStore} applied to the left variable name is an exception then the function will re-raise it and terminate. Otherwise, if a \textit{Variable} is returned then it will continue by applying another \textbf{getFromStore} to the name of the right variable. The exact same operations as with the left name are performed for the right name. Consequently, if the right variable is retrieved from the store then the above defined \textbf{checkTypeCompat} function is applied to left and right \textit{Variable}s. In the end, the function will return a tuple containing either the raised exception from the \textbf{checkTypeCompat} and the \textit{Store} or an affirmative exception and the \textit{Store}. \\ \\
+    \noindent Furthermore, the actual behavior of assigning the right side to the left side needs to be simulated. This is achieved by the \textbf{assign} evaluator: 
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    assign :: Variable -> Variable -> StateMonad Variable 
+    assign (IntVar lname lval) (IntVar rname rval) = 
+                         returnS (IntVar lname rval)
+    assign (StringVar lname lval) (StringVar rname rval) =
+                         returnS (StringVar lname rval)
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{assign} will take two \textit{Variable}s and return a tuple containing the new \textit{Variable} with name of the left variable and the value of the right variable and the unchanged \textit{Store}.  
+    
+    
+    \subsubsection{Variable on the right side}
+    
+    The \textbf{evalAssignRightCond} is used to represent the evaluation of a variable assignment where on the right side a \textit{Variable} is present.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    evalAssignRightVar:: String -> String ->
+                         StateMonad (Exceptions Variable)
+    evalAssignRightVar leftname rightname = 
+     (verifyVarRelation leftname rightname) `bindS` \decision -> 
+     if (decision /= (Raise "approve")) 
+     then returnS (decision) else (getFromStore leftname) 
+                `bindS` \l -> (removeFromStore (getVariable l)) 
+                `bindS` \_ -> (getFromStore rightname) 
+                `bindS` \r -> (assign (getVariable l) (getVariable r)) 
+                `bindS` \newVal -> putInStore newVal
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{evalAssignRightVar} will initially utilize the \textbf{verifyVarRelation} evaluator to observe if an approve message is produced or the corresponding exception is thrown. An \textbf{if then else} construct is applied on the outcome of the \textbf{verifyVarRelation}. If the decision is not approved then the corresponding exception is re-raised otherwise the function will proceed with the assignment of the right side to the left side. Firstly, the left variable will be \textbf{removed} from the store. Secondly, the \textbf{assign} function is utilized to give to the left variable name the value of the right variable. Finally, the new left Variable is \textbf{put} in the store. Again, observe the power of the \textbf{bindS} monadic operators which keep these computations neat and clean.   
+    
+    \subsubsection{Condition on the right side}
+    
+    The \textbf{evalAssignRightCond} is used to represent the evaluation of a variable assignment where on the right side a \textit{Condition} is present.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    evalAssignRightCond :: String -> String -> Operator -> String ->
+                           StateMonad (Exceptions Variable)
+    evalAssignRightCond left leftop op rightop = 
+     (getFromStore left) `bindS` \leftVar -> 
+     case leftVar of 
+       (Raise _)  -> returnS (raise (left ++ " does not exist"))
+       (Return l) -> (evalOp leftop op rightop) `bindS` \rightVarOrExp -> 
+     case rightVarOrExp of 
+        (Raise e) -> returnS (Raise e)
+        (Return r) -> (removeFromStore l) `bindS` \_ -> (assign l r) 
+                                `bindS` \newVal -> putInStore newVal
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{evalAssignRightCond} will initially apply the \textbf{getFromStore} evaluator to the left variable name and attempt to get it from the store. Through the \textbf{bindS}, the \textit{Exception Variable} outcome is taken out of the tuple returned from the \textbf{getFromStore} evaluator and placed as an input to the function returning \textbf{case of} construct applied to that input. If the input (\textit{leftVar}) is a raised exception then that exception is re-raised and the program is terminated. Otherwise, if a \textit{Variable} is returned then the \textbf{evalOp} evaluator will start consuming the \textit{Condition} on the right part of the equal operator. In the same manner as before, the \textbf{bindS} will take out the \textit{Exception Variable} and place as in input to a function returning a \textbf{case of} construct applied to that input. If an exception is thrown, then that exception is re-thrown and the program is ended. Otherwise, if a \textit{Variable} is returned then last bits of computation will be performed. Firstly, the \textit{Variable} on the left of the equal operator is \textbf{removed} from the store. Secondly, the value of the right \textit{Variable} returned by the \textbf{evalOp} is \textbf{assigned} to the name of the \textbf{Variable} on the left of the equal operator. Finally, the newly created \textit{Variable} is safely \textbf{put} in the \textit{Store}. 
+    
+    
+    \subsection{Evaluator Construction}
     
     Having constructed the most important operations \textit{to} and \textit{from} the Store will give the green light to the evaluation of the statements of our simple programming language. Let's see how the evaluate function is constructed: 
     
@@ -898,7 +997,7 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The \textbf{evaluate} function will received an \textit{input string} and a \textit{Store} to then produce a tuple containing a \textit{Raised Exception} or the corresponding \textit{Variable} and the \textit{Store} (modified or not). Initially, the \textbf{case of} construct is utilized to observe the possible outcome from applying the \textbf{my\textunderscore parser} defined in section 5.5 to the specified \textit{input string}. Recalling from the implementation of \textbf{Parser} monad, the outcome is a list containing a tuple of parsed input and remaining unparsed input. Consequently, if an empty list is returned then a tuple will be returned containing the raised exception that nothing was parsed and the unchanged \textit{Store}. In case the list is non empty, it will mean that something was parsed. Therefore, the parsed statement being a list (according to the \textbf{Parse [AST]}) is taken out and placed as an input value to the function \textbf{transform}. Why use \textbf{transform}? In order to evaluate a program, the statements need to be parsed separately. That's where the \textbf{transform} function comes in play by taking each parsed statement of the list to then evaluate it and use the recursive property that comes along with lists to continue the evaluation for the remaining parsed statements of the list. Let's have a look at implementation of \textbf{transform}:
+    \noindent The \textbf{evaluate} function will received an \textit{input string} and a \textit{Store} to then produce a tuple containing a \textit{Raised Exception} or the corresponding \textit{Variable} and the \textit{Store} (modified or not). Initially, the \textbf{case of} construct is utilized to observe the possible outcome from applying the \textbf{my\textunderscore parser} defined in section 5.5 to the specified \textit{input string}. Recalling the implementation of \textbf{Parser} monad, the outcome is a list containing a tuple of parsed input and remaining unparsed input. Consequently, if an empty list is returned then a tuple will be returned containing the raised exception that nothing was parsed and the unchanged \textit{Store}. In case the list is non empty, it will mean that something was parsed. Therefore, the parsed statement being a list (according to the \textbf{Parse [AST]}) is taken out and placed as an input value to the function \textbf{transform}. Why use \textbf{transform}? In order to evaluate a program, the statements need to be parsed separately. That's where the \textbf{transform} function comes in play by taking each parsed statement of the list to then evaluate it and use the recursive property that comes along with lists to continue the evaluation for the remaining parsed statements of the list. Let's have a look at implementation of \textbf{transform}:
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -913,10 +1012,11 @@
                                          `bindS` errorOrTransform xs
     (Get name)                     -> (getFromStore name)
                                          `bindS` errorOrTransform xs
-    (AssignmentVar leftvar rightvar)-> (modifyStore leftvar rightvar)
+    (AssignmentVar leftvar rightvar) -> 
+                               (evalAssignRightVar leftvar rightvar)
                                          `bindS` errorOrTransform xs
     (AssignmentOp leftvar leftopvar operator rightopvar) ->
-                (modifyStore' leftvar leftopvar operator rightopvar) 
+         (evalAssignRightCond leftvar leftopvar operator rightopvar) 
                                          `bindS` errorOrTransform xs
     \end{lstlisting}
     \end{tcolorbox}
@@ -947,13 +1047,13 @@
         \end{center}
         
          \begin{center}
-            \textbf{ghci$>$} \textbf{evaluate} \textcolor{red}{``String a = `rera';String a = 'RERA';"} \textcolor{green}{ $\big[$ $\big]$} \\
-             \textbf{(Raise \textcolor{red}{``variable a already exist"}},\textcolor{green}{$\big[$StringVar ``a" ` `` \textbf{`}rera\textbf{'} "$\big]$}\textbf{)}
+            \textbf{ghci$>$} \textbf{evaluate} \textcolor{red}{``String a = `rera';String a = `RERA';"} \textcolor{green}{ $\big[$ $\big]$} \\
+             \textbf{(Raise \textcolor{red}{``variable a already exists"}},\textcolor{green}{$\big[$StringVar ``a" `` \textbf{`}rera\textbf{'} "$\big]$}\textbf{)}
         \end{center}
     
     \begin{center}
             \textbf{ghci$>$} \textbf{evaluate} \textcolor{red}{``String a = `rera';a := b;"} \textcolor{green}{ $\big[$StringVar ``b" ``RERA" $\big]$} \\
-             \textbf{(Return (StringVar ``a" ``RERA")},\textcolor{green}{$\big[$StringVar ``a" ``\textbf{`}RERA\textbf{'}", StringVar ``b" ``\textbf{`}RERA\textbf{'}"$\big]$}\textbf{)}
+             \textbf{(Return (StringVar ``a" ``RERA")},\textcolor{green}{$\big[$StringVar ``a" `` \textbf{`}RERA\textbf{'} ", StringVar ``b" `` \textbf{`}RERA\textbf{'} "$\big]$}\textbf{)}
         \end{center}
         
         \begin{center}
@@ -965,6 +1065,8 @@
     \begin{center}
         \textbf{https://github.com/Rera93/Monads-for-Functional-Programming/blob/master/parsers2.lhs}
     \end{center}
+    
+    \section{Conclusions}
     
     
     
