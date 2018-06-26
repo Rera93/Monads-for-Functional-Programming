@@ -11,7 +11,7 @@
     \title{\Large{Research Seminar Software Science} \\
     \huge{Simulation of monadic effects in Haskell}}
     \author{Brigel Pineti}
-    \date{April 2018}
+    \date{June 2018}
     
     \begin{document}
     
@@ -19,27 +19,27 @@
     
     \section*{Abstract}
     
-    TODO: Write once the paper is coming to an end!
+    In this research paper, the concept of a monad is exploited to construct function programs and simulate side-effects such as state manipulation and exception handling. In order to properly illustrate the properties of a monad in practice, a case study is conducted on a simple programming language. The study is composed of two tasks: building a \textbf{parser} to parse the statements of the provided programming language using the \textit{Parser} Monad and creating an \textbf{evaluator} to evaluate any of the parsed statements using the \textit{State} and \textit{Exception} Monads. 
     
     \section{Introduction}
     
-    Pure function languages like Haskell rule out side effects. Why? Firstly, to allow unrestricted application of program transformation and equation logic. Secondly, being a non-strict language, Haskell's order of side effects is undefined. The aim of this paper is to show how monads can be used to capture impure effects into a pure language. The code snippets attached to this paper are implemented in Haskell. Section 2 will provide an overview on the characteristics of the language being used. Section 3 describes the construction of a monad, the various monadic flavors and the Maybe Monad as an illustrative example to get the reader's feet wet with the complex concept of a Monadic value. In section 4, the construction of a parser with the \textit{Parser} Monad is discussed in detail and the benefits of monadic \textit{alternation} and \textit{sequencing} in parsing are observed. The application of monads is demonstrated in section 5 through a case study to build a parser in practice for a simple programming language. In section 6, the case study is extended with an evaluator for the parsed language using the \textit{State} monad and error handling in included by utilizing the \textit{Exception} Monad. 
+    Pure functional languages such as Haskell rule out side effects \cite{history}. Why? Firstly, to allow unrestricted application of program transformations and equational logic. Secondly, being a non-strict language, Haskell's order of side effects is undefined. The aim of this paper is to show how monads can be used to capture impure effects into a pure language. The code snippets attached to this paper are implemented in Haskell. Section 2 will provide an overview on the characteristics of the language being used. Section 3 describes the construction of a monad, the various monadic flavors and the Maybe Monad as an illustrative example to get the reader's feet wet with the complex concept of a Monadic value. In section 4, the construction of a parser with the \textit{Parser} Monad is discussed in detail and the benefits of monadic \textit{alternation} and \textit{sequencing} in parsing are observed. The application of monads is demonstrated in section 5 through a case study to build a parser in practice for a simple programming language. In section 6, the case study is extended with an evaluator for the parsed language using the \textit{State} monad and error handling is included by utilizing the \textit{Exception} Monad. 
     
     \section{Haskell}
     
-    In this section are reflected two main features concerning the above mentioned functional language. Taking into consideration that not every reader might be familiar with the properties of the language, I found it necessary to briefly illustrate the laziness and purity of Haskell.  
+    In this section two main features concerning Haskell are described. Taking into consideration that not every reader might be familiar with the properties of the language, I found it necessary to briefly illustrate the laziness and purity of Haskell.  
     
     \subsection{Lazy Evaluation}
     
-    Haskell is a functional language with non-strict semantics. What does this mean? An expression is evaluated from the outside in. For instance, the evaluation of \textit{$(a + (b * c))$} will firstly reduce the \textit{$+$} operator and then the inner bracket \textit{$(a * b)$}. \\
+    Haskell is a functional language with non-strict semantics \cite{history}. What does this mean? An expression is evaluated from the outside in. For instance, the evaluation of \textit{$(a + (b * c))$} will firstly reduce the \textit{$+$} operator and then the inner bracket \textit{$(a * b)$}. \\
     Lazy evaluation is just an implementation approach for a non-strict language. An appropriate definition for laziness can be represented by the term \textit{call-by-need}. Consequently, the evaluation of an expression is delayed until its result is actually needed from another computation. Therefore, the parameters of a function are evaluated only when they are needed and not a moment before.
     
     \subsection{Absence of Side Effects}
     
-    A straightforward consequence of laziness is the evaluation order of a Haskell program. Being demand-driven, it becomes impossible for a function call to produce any side effects. Therefore, Haskell is considered to be a \textit{pure language}. For example, a function of type $Char \rightarrow Char$ will neither write nor read any mutable variables. Nevertheless, side effects are without any doubt very convenient. Haskell's restricted side effects resulted in a sluggish input/output. For this reason, monadic I/O was created; thus by leading to a functional language with side effects. 
+    A straightforward consequence of laziness is the evaluation order of a Haskell program. Being demand-driven, it becomes less trustworthy to produce side effects via a function call. Therefore, Haskell is considered to be a \textit{pure language} \cite{history}. For example, a function of type $Char \rightarrow Char$ will neither write nor read any mutable variables. Nevertheless, side effects are without any doubt very convenient. Haskell's restricted side effects resulted in a slow input/output \cite{history}. For this reason, monadic I/O was created; thus by leading to a functional language with side effects. 
     \section{Monads}
-    Monads originate from a section of mathematics called category theory \cite{categorytheory}. Luckily for the inexperienced readers, it is not required to have prior knowledge in category theory in order to comprehend the application of monads in Haskell. 
-    Nevertheless, there exists a certain complexity when it comes to grasping to concept of a monad. From history, monads were initially adopted in Haskell to produce input and output operations. However, the capabilities of monads were not bound to just I/O. Additionally, monads can support multiple operations such as state, non-determinism, continuations, exceptions etc.
+    Monads originate from a section of mathematics called category theory \cite{categorytheory}. Luckily for the inexperienced readers, it is not required to have prior knowledge in category theory in order to comprehend the application of monads in Haskell \cite{original}. 
+    Nevertheless, there exists a certain complexity when it comes to grasping to concept of a monad. From history, monads were initially adopted in Haskell to produce input and output operations \cite{history}. However, the capabilities of monads were not bound to just I/O. Additionally, monads can support multiple operations such as state, non-determinism, continuations, exceptions and many others.
     \subsection{Construction}
     For now think of a monad as a way of chaining operations together. 
     In order to have a monad, three components are essential to its construction: 
@@ -48,14 +48,14 @@
         \item a function return
         \item a bind operator ($\gg$=)
     \end{itemize}
-    The \textit{return} function and the bind operator ($\gg$=) have the following types: 
+    \noindent The \textit{return} function and the bind operator ($\gg$=) have the following types: 
     \begin{tcolorbox}
       \begin{lstlisting}[language=Haskell]
        return :: a -> M a 
        (>>=)  :: M a -> (a -> M b) -> M b 
       \end{lstlisting}
     \end{tcolorbox}
-    In order for the above function definitions to hold, the monad laws need to be satisfied. There exist three monadic laws as presented below: 
+    \noindent In order for the above function definitions to hold, the monad laws need to be satisfied. There exist three monadic laws as presented below: 
     \begin{tcolorbox}
       \begin{lstlisting}[language=Haskell]
     right unit             m >>= return  =  m 
@@ -63,22 +63,21 @@
     associative    (m >>= f) >>= g       =  m >>= (\x -> f x >>= g) 
       \end{lstlisting}
     \end{tcolorbox}
+    \noindent According to the laws of right and left unit, the return serves as a collector of a value where no computation occurs. As the type of \textit{return} suggests, it takes a value of type \textit{a}, puts it in a special context \textit{M} and returns as a result \textit{M a}. Furthermore, the associative law guarantees that the bind operator ($\gg$=) is concerned only with the order of computation and not on the manner the operators are nested together.
+    \subsection{Monad Flavors}
     
-    According to the laws of right and left unit, the return serves as a collector of a value where no computation occurs. As the type of \textit{return} suggests, it takes a value of type \textit{a}, puts it in a special context \textit{m} and returns as a result \textit{m a}. Furthermore, the associative law guarantees that the bind operator ($\gg$=) is concerned only with the order of computation and not on the manner the operators are nested together. The bind operation can be compared to a semicolon(;) by taking the output from the former step and feeding it to the next step.
-    \subsection{Flavors}
-    
-    It is crucial to understand that there exist more than one kind of monad. As a result, the implementation of the bind function ($\gg$=) mentioned on the previous section differs on various monads. 
+    It is crucial to understand that there exist more than one kind of monad. As a result, the implementation of the type constructor, bind function ($\gg$=), and \textit{return} mentioned in the previous section differs on various monads. In this subsection, the focus remains only on the construction of the type constructor for various monads.
     
     \begin{itemize}
         \item \textbf{Fail Monad} - Consider the case that each step will \textit{return} either a success or a fail. The bind operator can be constructed in such a way that the next step will be executed only if the former step succeeds. Hence, there is no need to check if the previous step failed since the \textit{fail monad} will take care of this by automatically aborting in case of a former failing step.
         \begin{center}
             \textbf{data} Failure \textit{a} = Fail $\vert$ Success \textit{a} 
         \end{center}
-        \item \textbf{Exception Monad} - An efficient way of handling errors by either raising an exception or returning the corresponding value. 
+        \item \textbf{Exception Monad} - An efficient way of handling errors is by either raising an exception or returning the corresponding value. Differently from the \textit{Fail Monad}, the \textit{Exception Monad} generalizes failure by providing an exception instead of just a fail. Therefore, an informative message will be thrown explaining why the program decided to unexpectedly terminate. 
         \begin{center}
             \textbf{data} Exc \textit{e a} = Exception \textit{e} $\vert$ OK \textit{a}
         \end{center}
-        \item \textbf{List Monad} - Models non-deterministic computation and return a sequence of values. There exists the opportunity to program each step to return multiple values. The bind operator ($\gg$=) may be used to iterate over these values and pass each value to the upcoming step. Otherwise various loops would be needed to deal with all these results. As it can be seen, the bind operator of the list monad would be very beneficial by removing the complexity of adding loops to retrieve information. 
+        \item \textbf{List Monad} - Models non-deterministic computation and return a sequence of values. There exists the opportunity to program each step to return multiple values. The bind operator ($\gg$=) may be used to iterate over these values and pass each value to the upcoming step. Otherwise various loops would be needed to deal with all these results.
         \begin{center}
             \textbf{type} List \textit{a} = [\textit{a}]
         \end{center}
@@ -98,7 +97,7 @@
     It is thought-provoking how any type can act as a \textit{Monad} just by defining some functions that comply with the three monadic laws in order to guarantee that the composition of functions with side effects is \textit{associative} and has an \textit{identity} \cite{essenceFP}.
     
     \subsection{Maybe}
-    The Maybe monad has been selected to provide a concrete insight on how a monad works in practice. The nature of Maybe provides a smooth solution to situations where some function may or may not return a value. The type constructor is presented below:
+    The Maybe monad has been selected to provide a concrete insight on how a monad works in practice. The nature of Maybe provides a smooth solution to situations where some function may or may not return a meaningful value. The type constructor is presented below:
     
     \begin{center}
         \textbf{data} Maybe \textit{a} = Just \textit{a} $\vert$ Nothing 
@@ -127,7 +126,7 @@
     \begin{center}
     ghci$>$ \textbf{Just} \textit{``smile"} $\gg=$ \textbackslash x $\rightarrow$ \textbf{Just} (\textit{x} ++ \textit{`` :)"})
     \end{center}
-    When the function is applied to \textbf{Just ``smile"}, it removes \textbf{``smile"} from its special context and passes it as an input to the function \textbf{\textbackslash x $\rightarrow$ Just (x ++ `` :)")}.  The function will return \textbf{Just ``smile :)"}. This is what I call magic! On the other hand, replacing \textbf{Just ``smile"} with the value constructor \textbf{Nothing} will always result in \textbf{Nothing} being independent from the function \textbf{f}.
+    When the function is applied to \textbf{Just ``smile"}, it removes \textbf{``smile"} from its special context and passes it as an input to the function \textbf{\textbackslash x $\rightarrow$ Just (x ++ `` :)")}.  The function will return \textbf{Just ``smile :)"}. On the other hand, replacing \textbf{Just ``smile"} with the value constructor \textbf{Nothing} will always result in \textbf{Nothing} being independent from the function \textbf{f}.
     
     
     \subsection{Conclusions}
@@ -137,14 +136,14 @@
         \item state between actions by guaranteeing that they are executed in the appropriate order 
         \item failing situations by ensuring that upcoming actions are aborted and the whole expression is evaluated to a failure
     \end{itemize}
-    Therefore, it is essential to understand how the Maybe types work as a Monad in order to then comprehend more complicated Monads like \textit{State} and \textit{IO}.
+    Therefore, it is essential to understand how the Maybe type works as a Monad in order to then comprehend more complicated Monads like \textit{State} and \textit{IO}.
     
     \section{Parsers}
-    Monads are valuable in modeling sequencing and alternation in recursive decent parsers. The methods described in this section are extensible since parsers are treated as first-class values and combinators are defined in Haskell. Additionally, it portrays the purity of functional programming.
+    Monads are valuable in modeling sequencing and alternation in recursive decent parsers. The methods described in this section are extensible since parsers are treated as first-class values and combinators are defined in Haskell. Additionally, it illustrates the purity of functional programming.
     
     \subsection{State Transformers}
     
-    Parsers in functional programming are pictured as state transformers \cite{original}. Recall state transformers monads from section 3.2.  
+    Parsers in functional programming are pictured as state transformers \cite{original}.  
     
     \begin{tcolorbox}
       \begin{lstlisting}[language=Haskell]
@@ -154,40 +153,44 @@
       \end{lstlisting}
     \end{tcolorbox}
     
-    The parser of type \textit{p} takes a state represented as a string ready to be parsed and returns a list containing the value of type \textit{p} parsed from the string and a state represented again as a string that is yet to be parsed. Since a parser may not consume all of its input string, the unconsumed suffix of the input must be returned along with the prefix of the input. As a result, the outcome of a parser must be a list enclosing consumed and unconsumed part of the input string. Additionally, the case when an empty list is returned is treated as a failure \cite{pearls}. On the other hand, an non-empty list is marked as a success.
+    \noindent The parser of type \textit{p} takes a state represented as a string ready to be parsed and returns a list containing the value of type \textit{p} parsed from the string and a state represented again as a string that is yet to be parsed. Since a parser may not consume all of its input string, the unconsumed suffix of the input must be returned along with the prefix of the input. As a result, the outcome of a parser must be a list enclosing consumed and unconsumed part of the input string. Additionally, the case when an empty list is returned is treated as a failure \cite{pearls}. On the other hand, an non-empty list is marked as a success.
     
     \subsection{Primitive Parsers}
     
     This subsection will introduce three primitive parsers with the sole purpose to achieve diverse parser combinators. \\ \\
-    Firstly, the parser oneItem will fail if the input provided is an empty list. Otherwise, it will eat only the first character of the input string and leave the other part of the input unconsumed. This parser is defined by applying pattern matching on the list. 
+    Firstly, the parser \textbf{oneItem} will fail if the input provided is an empty list. Otherwise, it will eat only the first character of the input string and leave the other part of the input unconsumed. This parser is defined by applying pattern matching on the list. 
      
-    
+    \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
       oneItem         :: Parse Char
       oneItem []       = []
       oneItem (l : ls) = [(l, ls)]
     \end{lstlisting}
+    \end{tcolorbox}
     
-    To better illustrate follow the examples below that treat both cases.
-    
+    \noindent To better illustrate follow the examples below that treat both cases.
+    \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
       oneItem ""       = []
       oneItem "parser" = [('p', "arser")]
     \end{lstlisting}
-    Secondly, the parser \textbf{zero} will always fail, regardless of the input string provided. 
-    
+    \end{tcolorbox}
+    \noindent Secondly, the parser \textbf{zero} will always fail, regardless of the input string provided. 
+    \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
       zero :: Parse p
       zero = \input -> [] 
     \end{lstlisting}
+    \end{tcolorbox}
     
-    In other words, the outcome of the \textbf{zero} parser will always be an empty list. \\ \\
-    Finally, the \textbf{result v} parser will always succeed by returning the value \textit{v} without consuming any input.
-    
+    \noindent In other words, the outcome of the \textbf{zero} parser will always be an empty list. \\ \\
+    Finally, the \textbf{result v} parser will always succeed by returning the value v without consuming any input. The \textbf{result} parser plays the role of the monadic \textbf{return}. 
+    \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
       result :: p -> Parse p
       result v input = [(v, input)]
     \end{lstlisting}
+    \end{tcolorbox}
     
     \subsection{Parser Combinators}
     
@@ -200,48 +203,37 @@
     \begin{tcolorbox}
     
     \begin{lstlisting}[language=Haskell]
-      seq :: Parse a -> Parse b -> Parser (a, b)
+      seq :: Parse a -> Parse b -> Parse (a, b)
       p `seq` q = \input -> [((v, u), input'') | (v, input') <- p input,
                                                 (u, input'') <- q input']
     \end{lstlisting}
     \end{tcolorbox}
-    
-    In order to define the \textit{seq} operator, list comprehensions come in handy. Initially, the right side of the vertical bar is executed. In case, the parser \textbf{p} takes a non-empty \textbf{input} string, then a list of pairs will be returned accommodating the consumed prefix of the \textbf{input} and the unconsumed suffix of the \textbf{input}. The resulting list of pairs for the parser \textbf{p input} is \textbf{(v, input')}. \\ \\ Immediately after the parser \textbf{p} has accomplished it's goal, the parser \textbf{q} will take as an input string the un-parsed string from the former parser. In other words, the parser \textbf{q} takes as an input string the string \textbf{input'}. The outcome of the parser \textbf{q input'} will be the list of pairs \textbf{(w, input'')} where \textbf{u} is the \textit{prefix of the input'} and \textbf{input''} is the \textit{suffix of the input'}. \\ \\
+    \noindent In order to define the \textit{seq} operator, list comprehensions come in handy. Initially, the right side of the vertical bar is executed. In case, the parser \textbf{p} takes an \textbf{input} string, then a list of pairs will be returned accommodating the consumed prefix of the \textbf{input} and the unconsumed suffix of the \textbf{input}. The resulting list of pairs for the parser \textbf{p input} is \textbf{(v, input')}. \\ \\ Immediately after \textbf{p}, the parser \textbf{q} will take as an input string the un-parsed string from the former parser. In other words, the parser \textbf{q} takes as an input string the string \textbf{input'}. The outcome of the parser \textbf{q input'} will be the list of pairs \textbf{(u, input'')} where \textbf{u} is the \textit{prefix of the input'} and \textbf{input''} is the \textit{suffix of the input'}. \\ \\
     As a last step (the left side of the vertical bar), the parser combinator \textbf{seq} will sew together the values \textbf{u} and \textbf{v} into a tuple and return a list of pairs like \textbf{[((v, u), input'')]}. \\ \\
-    In the above situation, the operator \textbf{seq} will continuously nest tuples together thus be increasing complexity and making it painful to handle. \\ \\
-    The headache introduced by the nested tuples can be smoothly averted by adopting monadic sequencing. In order to achieve this type of sequencing the bind operator has been defined. The type of this operator resembles with the type of the bind operator from monad instance \textit{m}. Recalling from the section 3.1 of Monad Construction, the type of ($>>$=) was {\textbf{m a $\rightarrow$ (a $\rightarrow$ m b) $\rightarrow$ m b}}. In the monadic sequencing case, the \textit{m} is being replaced with \textit{Parse}.
+    In the above situation, the operator \textbf{seq} will continuously nest tuples together thus be increasing complexity and making it painful to handle. An important note to the reader is that even if the same effect is produced there is a difference in the type returned between the two following scenarios: (\textbf{p} `seq` \textbf{q}) `seq` \textbf{z} \textit{and} \textbf{p} `seq` (\textbf{q} `seq` \textbf{z}). The type of the first scenario is ((\textbf{p},\textbf{q}),\textbf{z}), while the type of the second scenario is (\textbf{p},(\textbf{q},\textbf{z})).\\ \\
+    The headache introduced by the nested tuples can be smoothly averted by adopting monadic sequencing. In order to achieve this type of sequencing the bind operator has been defined. Recalling from the section 3.1 of Monad Construction, the type of ($>>$=) was {\textbf{M a $\rightarrow$ (a $\rightarrow$ M b) $\rightarrow$ M b}}. In the monadic sequencing case, the \textit{M} is being replaced with \textit{Parse}.
     
     \begin{tcolorbox}
     
     \begin{lstlisting}[language=Haskell]
-      bind :: Parse a -> (a -> Parse b) -> Parser b
+      bind :: Parse a -> (a -> Parse b) -> Parse b
       p `bind` f = \input -> concat [f v input' | (v, input') <- p input]
     \end{lstlisting}
     \end{tcolorbox}
     
-    The \textbf{bind} combinator is an infix operator that take a parser from the left side and a function that itself takes a normal value and returns another parser from the right side. The infix \textbf{bind} is defined as a lambda expression taking a string as an input and producing a concatenation of the values parsed by the sequencing of parsers. \\ \\
+    \noindent The \textbf{bind} combinator is an infix operator that takes a parser from the left side and a function that itself takes a normal value and returns another parser from the right side. The infix \textbf{bind} is defined as a lambda expression taking a string as an input and producing a concatenation of the values parsed by the sequencing of parsers. \\ \\
     At first, the parser \textbf{p} is applied to the input string and results in a list of pairs \textbf{(v, input')} where \textit{v} is the first item exhausted by the parser \textbf{p} and the \textit{input'} is the remaining input string. \\ \\
-    Now, the function \textbf{f} applies to the normal value \textbf{v} to form a parser \textbf{f v} which is afterwards applied the string \textbf{input'}. The resulting parser will be a list of concatenated lists. The examples below will help in clarifying any confusion being raised by the \textbf{bind} operator. 
-    
-    \begin{tcolorbox}
-    \begin{lstlisting}[language=Haskell]
-      parseOneItem :: Parse Char
-      parseOneItem  = oneItem `bind` \x -> result x 
-    \end{lstlisting}
-    \end{tcolorbox}
-    
-    The parser \textbf{parseOneItem} produces that same result as the primitive parser \textbf{oneItem} defined in section 5.2 but their implementation differs. The latter parser is using the former parser in its definition. \\ \\ 
-    In practice, the \textbf{oneItem} parser is consuming the first character of an input string and through the \textbf{bind} operator this value is being passed as an input to the lambda function expression \textbf{\textbackslash x $\rightarrow$ result x}. Furthermore, this function is returning the primitive \textbf{result} parser. From section 5.2, the \textbf{result} parser will always succeed by returning the value x that was passed to it without exhausting any input string. In this case, the goal of the \textbf{result} parser is to just display what was parsed and what was not parsed, and doesn't need to worry about parsing since the \textbf{oneItem} parser is taking care of that.  
+    Now, the function \textbf{f} applies to the normal value \textbf{v} to form a parser \textbf{f v} which is afterwards applied the string \textbf{input'}. The resulting parser will be a list of concatenated lists. The example below will help in clarifying any confusion being raised by the \textbf{bind} operator. 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
       parseTwoItems :: Parse (Char, Char)
-      parseTwoItems  = oneItem `bind` \x -> oneitem 
+      parseTwoItems  = oneItem `bind` \x -> oneItem 
                                `bind` \y -> result (x, y)
     \end{lstlisting}
     \end{tcolorbox}
     
-    The parse \textbf{parseTwoItems} manages to parse the first two characters of the input string and returns the two parsed characters and remaining part of the input string which is not yet parsed. \\ \\
+    \noindent The parse \textbf{parseTwoItems} manages to parse the first two characters of the input string and returns the two parsed characters and remaining part of the input string which is not yet parsed. \\ \\
     In practice, the \textbf{parseTwoItems} is using two \textit{bind} infix operators. In the first \textit{bind}, the \textbf{oneItem} parser is eating the first character of the input string and passing the corresponding value to the function \textbf{\textbackslash x $\rightarrow$ oneItem}, which differently from the previous \textbf{parseOneItem} parser is returning another \textbf{oneItem} parser instead of the primitive \textbf{result} parser. In the second \textit{bind}, the  other \textbf{oneItem} parser is devouring the first character of the unparsed input string and passing that value as an input to the function \textbf{\textbackslash y $\rightarrow$ result(x, y)}. Finally, the resulting output will be handled by the \textbf{result} parser which will return the values of \textit{x} and \textit{y} being correspondingly the first and the second character of initial input string, together with the unparsed input string as a tuple. \\ \\ 
     The following example will better illustrate the outcome when parsing a string:
        \begin{center}
@@ -249,7 +241,7 @@
             $\big[$((\textcolor{green}{`r'}, \textcolor{green}{`e'}), \textcolor{red}{``ra"})$\big]$
         \end{center}
         
-    From the above example, it can be deduced that the outcome of the first parser can be sequentially consumed by the second parser and so on if other parsers are included. Hence, the \textit{bind} infix operator will dodge the complication introduced by the nested tuples. Consequently, the \textit{seq} can be defined using the \textit{bind} operator: 
+    \noindent From the above example, it can be deduced that the outcome of the first parser can be sequentially consumed by the second parser and so on if other parsers are included. Hence, the \textit{bind} infix operator will dodge the complication introduced by the nested tuples. Consequently, the \textit{seq} can be defined using the \textit{bind} operator: 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
@@ -257,7 +249,7 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    The monadic \textit{bind} operator can be used to define parsers of a different nature. For example, a \textbf{satisfy} combinator may be constructed as a function that takes a predicate as input and returns a parser that consumes the first element of a string if the predicate is true and fails if the predicate is false. In order to fulfill the required parsing behavior, the primitive parsers \textit{oneItem}, \textit{result} and \textit{zero} mentioned in section 5.2 are necessary. Let's observe how the \textbf{satisfy} can be implemented: 
+    \noindent The monadic \textit{bind} operator can be used to define parsers of a different nature. For example, a \textbf{satisfy} combinator may be constructed as a function that takes a predicate as input and returns a parser that consumes the first element of a string if the predicate is true and fails if the predicate is false. In order to fulfill the required parsing behavior, the primitive parsers \textit{oneItem}, \textit{result} and \textit{zero} mentioned in section 4.2 are necessary. Let's observe how the \textbf{satisfy} can be implemented: 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
@@ -268,8 +260,8 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    The \textbf{satisfy} combinator will initially parse the first item of the input provided. Afterwards, through the \textit{bind} operator this value is passed as an input to the function taking the first character as an input and returning an if statement as an output. The if statement checks what the predicate returns. If the predicate is true the first value parsed and the unparsed input string are returned through the \textbf{result} parser, otherwise the parser will fail and will return an empty list through the \textbf{zero} parser.  \\ \\
-    A benefit of using the monadic approach to define parsers is the support provided by the \textit{monad comprehension syntax} \cite{bringMonadComprehension}. Monad comprehensions will promote readability of parsers. Hence, the satisfy can be transformed into the following structure: 
+    \noindent The \textbf{satisfy} combinator will initially parse the first item of the input provided. Afterwards, through the \textit{bind} operator this value is passed as an input to the function taking the first character as an input and returning an if statement as an output. The if statement checks what the predicate returns. If the predicate is true the first value parsed and the unparsed input string are returned through the \textbf{result} parser, otherwise the parser will fail and will return an empty list through the \textbf{zero} parser.  \\ \\
+    A benefit of using the monadic approach to define parsers is the support provided by the \textit{monad comprehension syntax} \cite{bringMonadComprehension}. Monad comprehensions promote the readability of parsers. Hence, the \textbf{satisfy} parser can be transformed into the following structure: 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
@@ -277,7 +269,7 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    The \textbf{satisfy} parser combinator can be easily extended to add precision in parsers. Hence, parsers like \textbf{singleChar}, \textbf{isdigit}. \textbf{islowercase} and \textbf{isuppercase} can be defined:
+    \noindent The \textbf{satisfy} parser combinator can be easily extended to add precision in parsers. Hence, parsers like \textbf{singleChar}, \textbf{isdigit}, \textbf{islowercase} and \textbf{isuppercase} can be defined:
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
@@ -295,9 +287,8 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    The names for each parser are speaking for themselves. Each of the above parsers will success in parsing the first character if the predicate takes an input for the satisfy combinator is true. On the other hand, the parser will fail and return [ ]. 
-    
-    In conclusion, it is very important to comprehend that the monadic \textbf{bind} made possible the creation of \textbf{satisfy} and what followed as an extension of \textbf{satisfy}. However, this is not the end of the commodity that the \textbf{bind} operator provides. For instance, a new parser may be created to parse two digits or more if the predicate holds or to fail if it doesn't. 
+    \noindent The names for each parser are speaking for themselves. Each of the above parsers will succeed in parsing the first character as long as the corresponding predicate holds. Otherwise, the parser will fail and return [ ]. \\ \\ 
+    In conclusion, it is very important to comprehend that the monadic \textbf{bind} made possible the creation of \textbf{satisfy} and what followed as an extension of \textbf{satisfy}. However, this is not the end of the comforting behavior that the \textbf{bind} operator provides. For instance, a new parser may be created to parse two digits or more if the predicate holds or to fail if it doesn't. 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
@@ -307,11 +298,11 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    Applying this parser to an input string ``12rera" will succeed with the result [((`1', `2'), ``rera")] whereas in case of an input ``1rera" will fail and return [ ] since the second parsed character \textit{`r'} is not a digit. \\ \\
-    Nevertheless, it would not be convenient to create new parsers each time more items need to be parsed. For that reason, \textit{recursive parsers} are desired. Additionally, recursive operation must be terminated at some point. In order to achieve or not termination, the \textbf{alternation} combinator has to be used but more on that on the next subsection.
+    \noindent Applying this parser to an input string ``12rera" will succeed with the result [((`1', `2'), ``rera")] whereas in case of an input ``1rera" will fail and return [ ] since the second parsed character \textit{`r'} is not a digit. \\ \\
+    Nevertheless, it would not be convenient to create new parsers each time more items need to be parsed. For that reason, \textit{recursive parsers} are desired. Additionally, recursive operation must be terminated at some point. In order to achieve this, the \textbf{alternation} combinator has to be used but more on that on the next subsection.
     \subsubsection{Alternation}
     
-    In this subsection, the attention will be redirected towards producing alternation in parsers.  The implementation of 2 parsers being alternated together will be represented by the operator (\texttt{+++}) and we will refer to this as the \textbf{plus} parser. Have a look at the following Haskell snippet to understand how alternation is attained:
+    In this subsection, the attention will be redirected towards producing alternation in parsers. The implementation of two parsers being alternated together will be represented by the operator (\texttt{+++}) and we will refer to this as the \textbf{choice} parser. Have a look at the following Haskell snippet to understand how alternation is attained:
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell]
@@ -319,7 +310,7 @@
       p +++ q  = \input -> (p input ++ q input)
     \end{lstlisting}
     \end{tcolorbox}
-    \noindent The nature of the plus parser can be illustrated by defining the \textbf{isletter} parser which alternates two of the already defined parsers from the previous subsection: \textbf{islowercase} and \textbf{isuppercase}.
+    \noindent The nature of the \textbf{choice} parser can be illustrated by defining the \textbf{isletter} parser which alternates two of the already defined parsers from the previous subsection: \textbf{islowercase} and \textbf{isuppercase}.
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -328,14 +319,14 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The \textbf{isletter} parser will parse the first character of input string if it is a lowercase or an uppercase letter. How does it accomplish this? Firstly, it will apply parser \textbf{islowercase} to the input string and yield a tuple with resulting parsed character together with remaining not parsed input string. Secondly, it will apply the parser \textbf{isuppercase} to the same input string and return a tuple containing the resulting  parsed character together with the yet to be parsed input string. Finally, it will concatenate the resulting tuples from \textbf{islowercase} and \textbf{isuppercase} parsers into one list. As shown from the example below, the \textbf{isletter} parser is exhibiting the correct behavior by just returning the parsed character is it is a letter.
+    \noindent The \textbf{isletter} parser will parse the first character of input string if it is a lowercase or an uppercase letter. How does it accomplish this? Firstly, it will apply parser \textbf{islowercase} to the input string and yield a tuple with resulting parsed character together with remaining not parsed input string. Secondly, it will apply the parser \textbf{isuppercase} to the same input string and return a tuple containing the resulting  parsed character together with the yet to be parsed input string. Finally, it will concatenate the resulting tuples from \textbf{islowercase} and \textbf{isuppercase} parsers into one list. As shown from the example below, the \textbf{isletter} parser is exhibiting the correct behavior by just returning the parsed character which is a letter.
     
     \begin{center}
             \textbf{ghci$>$} isletter \textcolor{red}{``rera"} \\
             $\big[$(\textcolor{green}{`r'}, \textcolor{red}{``era"})$\big]$
     \end{center}
     
-    \noindent Actually, the resulting outcome is the output produced by the \textbf{islowercase} parser while the \textbf{isuppercase} parser returns an empty list. If the \textbf{isuppercase} parser returned a non empty list , the resulting output would be appended to the output of the \textbf{islowercase} parser, thus by producing some ambiguous behavior. In other words, there is an issue with the non-deterministic behavior of the \textbf{plus} parser. \\ \\
+    \noindent Actually, the resulting outcome is the output produced by the \textbf{islowercase} parser while the \textbf{isuppercase} parser returns an empty list. If the \textbf{isuppercase} parser returned a non empty list, the resulting output would be appended to the output of the \textbf{islowercase} parser, thus by producing some ambiguous behavior. In other words, there is an issue with the non-deterministic behavior of the \textbf{choice} parser. \\ \\
     The nature of this complication can be clearly represented by the \textbf{islower\_r} parser which alternates two of the already defined parsers from the previous subsection: \textbf{islowercase} and \textbf{singleChar}. 
     
     \begin{tcolorbox}
@@ -345,7 +336,7 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The role that the \textbf{islower\_r} exhibits is not very useful in parsing terms but in this case it is essential in exposing the hidden inadequate behavior of the \textbf{plus} parser. Now, let's apply the \textbf{islower\_r} parser to an input string that contains `r' as it's first character to observe what happens.
+    \noindent The role that the \textbf{islower\_r} exhibits is not very useful in parsing terms but in this case it is essential in exposing the hidden inadequate behavior of the \textbf{choice} parser. Now, let's apply the \textbf{islower\_r} parser to an input string that contains `r' as it's first character to observe what happens.
     
     \begin{center}
             \textbf{ghci$>$} islower\_r \textcolor{red}{``rera"} \\
@@ -367,15 +358,15 @@
     
     \begin{center}
             \textbf{ghci$>$} isword \textcolor{red}{``rera"} \\
-               $\big[$(\textcolor{green}{`rera'}, \textcolor{red}{``"}), (\textcolor{green}{`rer'}, \textcolor{red}{``a"})
-            (\textcolor{green}{`re'}, \textcolor{red}{``ra"})
-            (\textcolor{green}{`r'}, \textcolor{red}{``era"})
-            (\textcolor{green}{`'}, \textcolor{red}{``rera"})$\big]$
+               $\big[$(\textcolor{green}{``rera"}, \textcolor{red}{``"}), (\textcolor{green}{``rer"}, \textcolor{red}{``a"})
+            (\textcolor{green}{``re"}, \textcolor{red}{``ra"})
+            (\textcolor{green}{``r"}, \textcolor{red}{``era"})
+            (\textcolor{green}{``"}, \textcolor{red}{``rera"})$\big]$
         \end{center}
         
-    \noindent As it can be seen the behavior that the \textbf{isword} parser demonstrates is not as expected. The \textbf{isword} parser is supposed to parse an entire string, thus the only relevant output to be awaited from \textbf{isword ``rera"} is \textbf{[(``rera", ``")]}. \\ \\
-      In order to achieve the expected behaviour some changes have to be made to the \textbf{plus} parser. The end goal is to allow the consequent parser to parse the input string only if the initial parser has failed in doing so. Additionally, if the initial parser succeeds in parsing the input, the program is terminated and the parsed result is returned. How can the \textbf{plus} parser be altered so that it can introduce this deterministic behavior? \\ \\ 
-      One way to transform the \textbf{plus} parser is by applying the \textit{case of} notation on the output that the first parser \textit{p} produces when applied to the input string. In case, the parser \textit{p} when eating the input string returns a parsed value together with the yet to be parser string then the \textbf{plus} parser terminates and returns the mentioned result. However, if the parser \textit{p} return an empty list after parsing the input string then and only then the second parser \textit{q} will be applied to same input string as parser \textit{p}. The implementation of the transformed \textbf{plus} parser is presented below:
+    \noindent As it can be seen the behavior that the \textbf{isword} parser demonstrates is not as expected. The \textbf{isword} parser is supposed to parse an entire string, thus the only relevant output to be expected from \textbf{isword ``rera"} is \textbf{[(``rera", ``")]}. \\ \\
+      In order to achieve the expected behaviour some changes have to be made to the \textbf{choice} parser. The end goal is to allow the consequent parser to parse the input string only if the initial parser has failed in doing so. Additionally, if the initial parser succeeds in parsing the input, the program is terminated and the parsed result is returned. How can the \textbf{choice} parser be altered so that it can introduce this deterministic behavior? \\ \\ 
+      One way to transform the \textbf{choice} parser is by applying the \textit{case of} notation on the output that the first parser \textit{p} produces when applied to the input string. In case, the parser \textit{p} when eating the input string returns a parsed value together with the yet to be parser string then the \textbf{choice} parser terminates and returns the mentioned result. However, if the parser \textit{p} return an empty list after parsing the input string then and only then the second parser \textit{q} will be applied to same input string as parser \textit{p}. The implementation of the transformed \textbf{choice} parser is presented below:
      
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -385,22 +376,11 @@
     \end{lstlisting}
     \end{tcolorbox}
      
-     \noindent With this modification, some deterministic behaviour has been inserted in the \textbf{plus} parser thus by fixing the sketchy behavior that was being manifested before. \\ \\
-     Another way to customize the \textbf{plus} parser is by utilizing the Maybe monad. The following snippet of Haskell code shows how the Just and Nothing constructors can be integrated in the \textbf{plus} parser:
-     
-     \begin{tcolorbox}
-    \begin{lstlisting}[language=Haskell] 
-        p +++ q = \input -> case p input of
-                              Just (val, input') -> Just (val, input')
-                                         Nothing -> q input
-    \end{lstlisting}
-    \end{tcolorbox}
-    
-    Therefore, both the \textit{List} and the \textit{Maybe} monad in combination with \textit{case of} notation helped in upgrading the behavior of the \textbf{plus} parser. 
+     \noindent With this modification, some deterministic behaviour has been inserted in the \textbf{choice} parser thus by fixing the sketchy behavior that was being manifested before.
     
     \section{A Case Study}
     
-    In order to properly illustrate the monadic techniques described on section 5, a case study will be conducted on creating a parser in a monadic way for a simple programming language with the following constructs: 
+    In order to properly illustrate the monadic techniques described on section 4, a case study will be conducted on creating a parser in a monadic way for a simple programming language with the following constructs: 
     
     \begin{itemize}
         \item Only \textit{Integer} and \textit{String} variable declarations \\
@@ -416,7 +396,7 @@
         \textbf{while}(\textit{condition}) \textbf{do} \textit{statements} \textbf{od}
     \end{itemize}
     
-    \noindent Additionally, on section 7 the created parser will be evaluated with the usage of the \textbf{State} and \textbf{Exception} monads. 
+    \noindent Additionally, in section 6 the created parser will be evaluated with the usage of the \textbf{State} and \textbf{Exception} monads. 
     
     \subsection{Algebraic Data Types}
     
@@ -460,7 +440,7 @@
      \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The \textit{tokenizer} is eating a keyword and an input string to then return a tuple of parsed and unparsed input string. Whether the content of the input string is going to be parsed will depend on the value of the keyword which itself is also a string. Obviously, if this keyword is an empty string than nothing will be parsed no matter the content of the input string. In case, the token in a non empty string then the \textit{tokenizer} will use the \textit{singleChar} parser to parse the first character of the input string and through the bind operator pass the parsed character as an input to the lambda expression \textbf{\textbackslash first -$>$ tokenize xs}. Then, the function will recursively apply the \textit{tokenizer} to the rest of the keyword. This operation will finish when the whole keyword has been traversed. Through another bind operator, the resulting value of \textbf{tokenize xs} will be passed as an input to the lambda expression taking the \textbf{rest} variable and returning a \textit{result} parser. The \textit{result} parser takes as an input a list containing the parsed and unparsed input string which is also the output of the \textit{tokenizer}. \\ \\
+    \noindent The \textit{tokenizer} is eating a keyword and an input string to then return a tuple of parsed and unparsed input string. Whether the content of the input string is going to be parsed will depend on the value of the keyword which itself is also a string. Obviously, if this keyword is an empty string then nothing will be parsed no matter the content of the input string. In case the token in a non empty string then the \textit{tokenizer} will use the \textit{singleChar} parser to parse the first character of the input string and through the bind operator pass the parsed character as an input to the lambda expression \textbf{\textbackslash first -$>$ tokenize xs}. Then, the function will recursively apply the \textit{tokenizer} to the rest of the keyword. This operation will finish when the whole keyword has been traversed. Through another bind operator, the resulting value of \textbf{tokenize xs} will be passed as an input to the lambda expression taking the \textbf{rest} variable and returning a \textit{result} parser. The \textit{result} parser takes as an input a list containing the parsed and unparsed input string which is also the output of the \textit{tokenizer}. \\ \\
     The following example will illustrate how the \textit{tokenizer} will parse the Integer keyword:
     
     \begin{center}
@@ -477,7 +457,7 @@
     \subsubsection{Variable Declaration}
     
     The simple programming language used for this case study contains only two types of variables: \textbf{Strings} and \textbf{Integers}. The declaration of a variable contains the following format: a keyword (either \textit{String} or \textit{Integer}), a space, a variable name (list of characters), a space, an equality operator, a space, a number for integer declaration or a string surrounded in single quotes for string declaration. \\ \\
-    Keeping in mind the format, the construction of the \textbf{parse\textunderscore declaration\textunderscore string} and \\ \textbf{parse\textunderscore declaration\textunderscore int} is rather straightforward since all the parsers needed to construct these parsers have already been defined on section 5.
+    Keeping in mind the format, the construction of the \textbf{parse\textunderscore declaration\textunderscore string} and \\ \textbf{parse\textunderscore declaration\textunderscore int} is rather straightforward since all the parsers needed to construct these parsers have already been defined on section 4.
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -530,7 +510,7 @@
      \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The construction of these parsers is much simpler that the parsers from variable declaration since there is not so much tokens to parse in this situation. The \textit{tokenizer} is again used to parse the keywords together with opening bracket: \textbf{"print("} and \textbf{get(}. The outcome in both parsers contains the \textbf{result} parser taking as input the AST values \textbf{Get var} or \textbf{Print var} (where \textit{var} is the string parsed by the \textit{isword} parser) and the remaining unparsed input string.
+    \noindent The construction of these parsers is much simpler than the parsers from variable declaration since there are not so much tokens to parse in this situation. The \textit{tokenizer} is again used to parse the keywords together with opening bracket: \textbf{"print("} and \textbf{get(}. The outcome in both parsers contains the \textbf{result} parser taking as input the AST values \textbf{Get var} or \textbf{Print var} (where \textit{var} is the string parsed by the \textit{isword} parser) and the remaining unparsed input string.
     
     
     \subsubsection{Variable Assignment}
@@ -596,8 +576,8 @@
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent As expected, the construction is equivalent to the \textit{arithmetic} parsers. Although, on the operators (==, !=, $<$=, $>$=) a \textit{tokenizer} is used since more than one character needs to be recognized to then be parsed. \\ \\
-    At the moment, all the parsers to recognize \textit{arithmetic} and \textit{comparison} operators have been defined. The next step would be creating another parser that encapsulates all of the above parsers to recognize operators in general. How can this be achieved? Well, with the elegance of \textit{alternation} of course! However, before creating the final \textbf{is\textunderscore operator} parser, two parsers need to be defined in order to wrap \textit{arithmetic} and \textit{comparison} operators. Let's see how nice and neat these parsers looks like:
+    \noindent As expected, the construction is equivalent to the \textit{arithmetic} parsers. Although, on the operators (==, !=, $<$=, $>$=) a \textit{tokenizer} is used since more than one character needs to be recognized. \\ \\
+    At the moment, all the parsers to recognize \textit{arithmetic} and \textit{comparison} operators have been defined. The next step would be creating another parser that encapsulates all of the above parsers to recognize operators in general. How can this be achieved? Well, with the elegance of \textit{alternation} of course. However, before creating the final \textbf{is\textunderscore operator} parser, two parsers need to be defined in order to wrap \textit{arithmetic} and \textit{comparison} operators. Let's see how these parsers looks like:
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -649,7 +629,7 @@
     
     \subsubsection{While Loop}
     
-    The loop in our programming language will be recognized by the \textbf{while} keyword. The loop block has the following format: the \textbf{while} keyword, opening bracket, condition, closing bracket, a space, the \textbf{do} keyword, a space, any of the above statements, a space, and the \textbf{od} keyword. In order to build a parser for a while statement, two additional parsers are required. Firstly, a parser for the condition part having the format: a variable name, a space, a comparison operator, a space and a another variable name. Secondly, a parser which accumulates all the statement parsers that have been defined above. For now, it will be assumed that this parser has already been implemented. The actual implementation is discussed on the section 6.5. \\ \\
+    The loop in our programming language will be recognized by the \textbf{while} keyword. The loop block has the following format: the \textbf{while} keyword, opening bracket, condition, closing bracket, a space, the \textbf{do} keyword, a space, any of the above statements, a space, and the \textbf{od} keyword. In order to build a parser for a while statement, two additional parsers are required. Firstly, a parser for the condition part having the format: a variable name, a space, a comparison operator, a space and a another variable name. Secondly, a parser which accumulates all the statement parsers that have been defined above. For now, it will be assumed that this parser has already been implemented. The actual implementation is discussed on the section 5.5. \\ \\
     \noindent Let's start with the construction of the \textit{condition} parser. It's implementation is presented below and it will use the \textbf{is\textunderscore comp\textunderscore op} parser to parse only \textit{comparison} operators: 
     
     \begin{tcolorbox}
@@ -699,7 +679,7 @@
     
     \begin{center}
             \textbf{ghci$>$} parse\textunderscore all \textcolor{red}{``while(a $>$ b) do Integer c = 2 od"} \\
-             $\big[$(\textcolor{green}{While (Condition ``a" GreaterThan ``b") $\big[$ DeclarationInt ``a" 2 $\big]$}, \textcolor{red}{``"})$\big]$
+             $\big[$(\textcolor{green}{While (Condition ``a" GreaterThan ``b") $\big[$ DeclarationInt ``c" 2 $\big]$}, \textcolor{red}{``"})$\big]$
         \end{center}
     
     
@@ -739,14 +719,17 @@
     \end{tcolorbox}
     
     \noindent Initially, the \textbf{parse\textunderscore all} parser is utilized to parse the first statement of the input string. The remaining input to be parsed is binded through the \textit{tokenizer} with a semicolon. After parsing (statement;), the string yet to be parsed is binded with the iterate parser which will take as input the \textbf{parse\textunderscore all} parser and will iterate over itself to produce a list of parsed AST. Finally, the \textbf{result} parser will return the list of AST statements parsed from the input string. \\ \\
-    The parsing of our programming language can be illustrated with the following example which will parse 3 statements and return their corresponding AST.
+    The parsing of our programming language can be illustrated with the following example which will parse 3 statements and return their corresponding AST. 
+    
+    %section \ref{eff}
     
     \begin{center}
             \textbf{ghci$>$} parse\textunderscore all \textcolor{red}{``Integer a = 2;String b = 'rera';a := b;"} \\
-             $\big[$($\big[$\textcolor{green}{DeclarationInt ``a" 2}, \textcolor{green}{DeclarationString ``b" 'rera'}, \textcolor{green}{AssignmentVar ``a" ``b"}$\big]$, \textcolor{red}{``"})]
+             $\big[$($\big[$\textcolor{green}{DeclarationInt ``a" 2}, \textcolor{green}{DeclarationString ``b" ``rera"}, \textcolor{green}{AssignmentVar ``a" ``b"}$\big]$, \textcolor{red}{``"})]
         \end{center}
         
     \section{Evaluator}
+    %\label{eff}
     
     In this section, the outcome of \textbf{my\textunderscore parser} will be evaluated with the utilization of the \textit{state} monad and errors will be handled with the \textit{exception} monad. These monads have not been imported from the Haskell language but have been re-created together with their accompanying monadic behavior. In addition, the approach taken to evaluate each statement of the simple programming language is observed and the helper monadic functions that were constructed are discussed in detail. Let's dive in. 
     
@@ -792,7 +775,7 @@
     
     \subsection{Exceptions}
     
-    Every program will throw errors from now and then. That's why error handling is an important feature and has to be included in our simple programming language. The \textit{Exception} monad provides an efficient way of handling errors for a computation by either raising an exception or returning the corresponding value.  
+    Error handling is an important feature and has to be included in our simple programming language. The \textit{Exception} monad provides an efficient way of handling errors for a computation by either raising an exception or returning the corresponding value.  
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -825,7 +808,7 @@
     
     
     \subsection{The Store}
-    In order to be able to evaluate any of the statements, the store needs to be considered as a point of reference. Lets recall the form of the simple variable assignment statement \textit{a := b}. If this statement is to be evaluated then the store has to be first checked to see if variables \textit{a} and \textit{b} exist. Afterwards, it has to assign the value of the variable \textit{b} into the variable \textit{a} and then put the variable \textit{b} in the store with the updated value. In other words, the three most important monadic functions to be constructed are \textbf{getting} a variable from the store, \textbf{putting} variable in the store, and \textbf{removing} a variable from the store. How can this be achieved? The StateMonad can be exploited to allow the store to accessed and modified. Let's see how this is done in the two following subsections.
+    In order to be able to evaluate any of the statements, the store needs to be considered as a point of reference. Lets recall the form of the simple variable assignment statement \textit{a := b}. If this statement is to be evaluated then the store has to be first checked to see if variables \textit{a} and \textit{b} exist. Afterwards, it has to assign the value of the variable \textit{b} into the variable \textit{a} and then put the variable \textit{a} in the store with the updated value. In other words, the three most important monadic functions to be constructed are \textbf{getting} a variable from the store, \textbf{putting} variable in the store, and \textbf{removing} a variable from the store. How can this be achieved? The StateMonad can be exploited to allow the store to accessed and modified. Let's see how this is done in the three following subsections.
     
     \subsubsection{Putting a Variable in the Store}
     
@@ -846,7 +829,7 @@
              (Return (IntVar ``a" 5),\textcolor{green}{$\big[$IntVar ``a" 5, IntVar ``a" 6$\big]$})
         \end{center}
     
-    \noindent This is not the behavior that it is desired since the store now contains two identical variable names with different values. Consequently, the implementation of the \textbf{getVarName} follows below: 
+    \noindent This is not the behavior that it is desired since the store now contains two identical variable names with different values. Applying the filter to the \textit{store} list will result in two outcomes. If the list is empty means that the variable does not exist and it can be safely put in the store. Thus, a tuple is returned containing the new \textit{Variable} and the modified store with the new \textit{Variable} included. Otherwise, if the list is non empty then a tuple is returned containing a raised exception saying that the variable name already exists and the unmodified store as a result. Consequently, the implementation of the \textbf{getVarName} follows below: 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -855,8 +838,6 @@
     getVarName (StringVar name _) = name
     \end{lstlisting}
     \end{tcolorbox}
-    
-    \noindent Applying the filter to the \textit{store} list will result in two outcomes. If the list is empty means that the variable does not exist and it can be safely put in the store. Thus, a tuple is returned containing the new \textit{Variable} and the modified store with the new \textit{Variable} included. Otherwise, if the list is non empty then a tuple is returned containing a raised exception saying that the variable name already exists and the unmodified store as a result.
     
     \subsubsection{Getting a Variable from the Store}
     
@@ -876,6 +857,8 @@
     
     \subsubsection{Removing a Variable from the Store}
     
+    It can be noted that having a \textbf{remove} from store is a different approach from the usual state manipulation. The reason for this is that in order to update the value of a variable the store will always have to \textbf{remove} it first from the store and then \textbf{put} the new value in the store. Let's have a look at the implementation of \textbf{removeFromStore}:
+    
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
     removeFromStore    :: Variable -> StateMonad () 
@@ -887,7 +870,7 @@
     
     \subsection{Evaluating Variable Assignment}
     
-    The default \textit{Store} operations defined on the previous subsection will be applied in this subsection to evaluate both cases of the variable assignments. Additionally, some helper functions are needed on both sides to smooth the evaluation process. 
+    The default \textit{Store} operations defined in the previous subsection will be applied in this subsection to evaluate both cases of the variable assignments. Additionally, some helper functions are needed on both sides to smooth the evaluation process. 
     
     \subsubsection{Helper Evaluators}
     
@@ -925,24 +908,62 @@
     \end{tcolorbox}
     
     \noindent The \textbf{verifyVarRelation} will initially attempt to get from the store the name of the left variable and through the \textbf{bindS} operator the outcome will be passed as an input to a function returning a \textbf{case of} construct on that input. If the outcome of \textbf{getFromStore} applied to the left variable name is an exception then the function will re-raise it and terminate. Otherwise, if a \textit{Variable} is returned then it will continue by applying another \textbf{getFromStore} to the name of the right variable. The exact same operations as with the left name are performed for the right name. Consequently, if the right variable is retrieved from the store then the above defined \textbf{checkTypeCompat} function is applied to left and right \textit{Variable}s. In the end, the function will return a tuple containing either the raised exception from the \textbf{checkTypeCompat} and the \textit{Store} or an affirmative exception and the \textit{Store}. \\ \\
-    \noindent Furthermore, the actual behavior of assigning the right side to the left side needs to be simulated. This is achieved by the \textbf{assign} evaluator: 
+    \noindent Furthermore, the actual behavior of associating the right side to the left side needs to be simulated. This is achieved by the \textbf{associate} evaluator: 
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
-    assign :: Variable -> Variable -> StateMonad Variable 
-    assign (IntVar lname lval) (IntVar rname rval) = 
+    associate :: Variable -> Variable -> StateMonad Variable 
+    associate (IntVar lname lval) (IntVar rname rval) = 
                          returnS (IntVar lname rval)
-    assign (StringVar lname lval) (StringVar rname rval) =
+    associate (StringVar lname lval) (StringVar rname rval) =
                          returnS (StringVar lname rval)
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The \textbf{assign} will take two \textit{Variable}s and return a tuple containing the new \textit{Variable} with name of the left variable and the value of the right variable and the unchanged \textit{Store}.  
+    \noindent The \textbf{associate} will take two \textit{Variable}s and return a tuple containing the new \textit{Variable} with name of the left variable and the value of the right variable and the unchanged \textit{Store}.  \\ \\
+    There are two other important evaluators that are essential in constructing the variable assignment evaluator having a \textit{Arithmetic Operation} on the right side. The first one is \textbf{calculate} evaluator which will compute the arithmetic operation between the two \textit{Variables} of the right side.
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    calculate :: Variable -> Operator -> Variable -> 
+                 StateMonad (Exceptions Variable)
+    calculate a op b = case op of 
+    (Multi) -> returnS (returnE 
+               (IntVar "result" ((getIntValue a) * (getIntValue b))))
+    (Plus)  -> returnS (returnE 
+               (IntVar "result" ((getIntValue a) + (getIntValue b))))
+    (Minus) -> returnS (returnE 
+               (IntVar "result" ((getIntValue a) - (getIntValue b))))
+    (Div)   -> returnS (returnE 
+               (IntVar "result" ((getIntValue a) / (getIntValue b))))
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The implementation of the \textbf{calculate} evaluator is rather straightforward and assigns to each \textit{Operator} type the corresponding \textit{Arithmetic} operator to be applied between the \textbf{Integer} values of the two \textit{Variables}. This evaluator is used to apply the finishing touch to the other important evaluator being \textbf{evalOp} and having the following implementation:
+    
+    \begin{tcolorbox}
+    \begin{lstlisting}[language=Haskell] 
+    evalOp :: String -> Operator -> String ->
+              StateMonad (Exceptions Variable)
+    evalOp left op right =
+     (verifyVarRelation left right) `bindS` \decision ->
+       if (decision /= Raise "approve") 
+         then returnS (decision) 
+       else (getFromStore left) `bindS` \l -> 
+         if ((getVarType (getVariable l)) /= "Integer") 
+           then returnS (raise "cant do arithmetic on strings") 
+         else (getFromStore right) `bindS` \r -> 
+           (calculate (getVariable l) op (getVariable r))
+    
+    \end{lstlisting}
+    \end{tcolorbox}
+    
+    \noindent The \textbf{evalOp} evaluator is initially utilizing the \textbf{verifyVarRelation} to check for the presence of the \textit{Variables} (on the right and left side of the operator) in the \textit{Store} and their type compatibility (both \textit{Integer} or \textit{Strings}). The \textbf{bindS} is taking out the decision from this evaluator and providing it as an input to a function returning an \textbf{if then else} construct and applying this input to the \textbf{if} part. In case the decision is not approved then the exception that \textbf{verifyVarRelation} raised is re-raised and the program is terminated. Otherwise, if the decision was an Exception with text approve then the program will proceed by getting from the \textit{Store} the left variable and checking if the type of that \textit{Variable} is an \textbf{Integer}. In case it is not an integer, then an tuple is returned containing a raised exception with text \textit{arithmetic operations cant be applied on Strings} and the unmodified \textit{Store}. Otherwise, if the type of the left variable is an \textbf{Integer} then the right variable will also be retrieved from the store and the \textbf{calculate} evaluator will be applied to both \textbf{Variables} to produce a tuple containing the resulting \textit{Variable} and the unmodified \textit{Store}.   
     
     
     \subsubsection{Variable on the right side}
     
-    The \textbf{evalAssignRightCond} is used to represent the evaluation of a variable assignment where on the right side a \textit{Variable} is present.
+    The \textbf{evalAssignRightVar} is used to represent the evaluation of a variable assignment where on the right side a \textit{Variable} is present.
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
@@ -954,34 +975,34 @@
      then returnS (decision) else (getFromStore leftname) 
                 `bindS` \l -> (removeFromStore (getVariable l)) 
                 `bindS` \_ -> (getFromStore rightname) 
-                `bindS` \r -> (assign (getVariable l) (getVariable r)) 
+                `bindS` \r -> (associate (getVariable l) (getVariable r)) 
                 `bindS` \newVal -> putInStore newVal
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The \textbf{evalAssignRightVar} will initially utilize the \textbf{verifyVarRelation} evaluator to observe if an approve message is produced or the corresponding exception is thrown. An \textbf{if then else} construct is applied on the outcome of the \textbf{verifyVarRelation}. If the decision is not approved then the corresponding exception is re-raised otherwise the function will proceed with the assignment of the right side to the left side. Firstly, the left variable will be \textbf{removed} from the store. Secondly, the \textbf{assign} function is utilized to give to the left variable name the value of the right variable. Finally, the new left Variable is \textbf{put} in the store. Again, observe the power of the \textbf{bindS} monadic operators which keep these computations neat and clean.   
+    \noindent The \textbf{evalAssignRightVar} will initially utilize the \textbf{verifyVarRelation} evaluator to observe if an approve message is produced or the corresponding exception is thrown. An \textbf{if then else} construct is applied on the outcome of the \textbf{verifyVarRelation}. If the decision is not approved then the corresponding exception is re-raised otherwise the function will proceed with the assignment of the right side to the left side. Firstly, the left variable will be \textbf{removed} from the store. Secondly, the \textbf{associate} function is utilized to give to the left variable name the value of the right variable. Finally, the new left Variable is \textbf{put} in the store. Again, observe the power of the \textbf{bindS} monadic operators which keep these computations neat and clean.   
     
-    \subsubsection{Condition on the right side}
+    \subsubsection{Arithmetic operation on the right side}
     
-    The \textbf{evalAssignRightCond} is used to represent the evaluation of a variable assignment where on the right side a \textit{Condition} is present.
+    The \textbf{evalAssignRightArith} is used to represent the evaluation of a variable assignment where on the right side an \textit{Arithmetic Operation} is present.
     
     \begin{tcolorbox}
     \begin{lstlisting}[language=Haskell] 
-    evalAssignRightCond :: String -> String -> Operator -> String ->
+    evalAssignRightArith :: String -> String -> Operator -> String ->
                            StateMonad (Exceptions Variable)
-    evalAssignRightCond left leftop op rightop = 
+    evalAssignRightArith left leftop op rightop = 
      (getFromStore left) `bindS` \leftVar -> 
      case leftVar of 
        (Raise _)  -> returnS (raise (left ++ " does not exist"))
        (Return l) -> (evalOp leftop op rightop) `bindS` \rightVarOrExp -> 
      case rightVarOrExp of 
         (Raise e) -> returnS (Raise e)
-        (Return r) -> (removeFromStore l) `bindS` \_ -> (assign l r) 
+        (Return r) -> (removeFromStore l) `bindS` \_ -> (associate l r) 
                                 `bindS` \newVal -> putInStore newVal
     \end{lstlisting}
     \end{tcolorbox}
     
-    \noindent The \textbf{evalAssignRightCond} will initially apply the \textbf{getFromStore} evaluator to the left variable name and attempt to get it from the store. Through the \textbf{bindS}, the \textit{Exception Variable} outcome is taken out of the tuple returned from the \textbf{getFromStore} evaluator and placed as an input to the function returning \textbf{case of} construct applied to that input. If the input (\textit{leftVar}) is a raised exception then that exception is re-raised and the program is terminated. Otherwise, if a \textit{Variable} is returned then the \textbf{evalOp} evaluator will start consuming the \textit{Condition} on the right part of the equal operator. In the same manner as before, the \textbf{bindS} will take out the \textit{Exception Variable} and place as in input to a function returning a \textbf{case of} construct applied to that input. If an exception is thrown, then that exception is re-thrown and the program is ended. Otherwise, if a \textit{Variable} is returned then last bits of computation will be performed. Firstly, the \textit{Variable} on the left of the equal operator is \textbf{removed} from the store. Secondly, the value of the right \textit{Variable} returned by the \textbf{evalOp} is \textbf{assigned} to the name of the \textbf{Variable} on the left of the equal operator. Finally, the newly created \textit{Variable} is safely \textbf{put} in the \textit{Store}. 
+    \noindent The \textbf{evalAssignRightArith} will initially apply the \textbf{getFromStore} evaluator to the left variable name and attempt to get it from the store. Through the \textbf{bindS}, the \textit{Exception Variable} outcome is taken out of the tuple returned from the \textbf{getFromStore} evaluator and placed as an input to the function returning \textbf{case of} construct applied to that input. If the input (\textit{leftVar}) is a raised exception then that exception is re-raised and the program is terminated. Otherwise, if a \textit{Variable} is returned then the \textbf{evalOp} evaluator will start consuming the \textit{Arithmetic Operation} on the right part of the equal operator. In the same manner as before, the \textbf{bindS} will take out the \textit{Exception Variable} and place as in input to a function returning a \textbf{case of} construct applied to that input. If an exception is thrown, then that exception is re-thrown and the program is ended. Otherwise, if a \textit{Variable} is returned then last bits of computation will be performed. Firstly, the \textit{Variable} on the left of the equal operator is \textbf{removed} from the store. Secondly, the value of the right \textit{Variable} returned by the \textbf{evalOp} is \textbf{associated} to the name of the \textbf{Variable} on the left of the equal operator. Finally, the newly created \textit{Variable} is safely \textbf{put} in the \textit{Store}. 
     
     
     \subsection{Evaluator Construction}
@@ -1000,7 +1021,10 @@
     \noindent The \textbf{evaluate} function will received an \textit{input string} and a \textit{Store} to then produce a tuple containing a \textit{Raised Exception} or the corresponding \textit{Variable} and the \textit{Store} (modified or not). Initially, the \textbf{case of} construct is utilized to observe the possible outcome from applying the \textbf{my\textunderscore parser} defined in section 5.5 to the specified \textit{input string}. Recalling the implementation of \textbf{Parser} monad, the outcome is a list containing a tuple of parsed input and remaining unparsed input. Consequently, if an empty list is returned then a tuple will be returned containing the raised exception that nothing was parsed and the unchanged \textit{Store}. In case the list is non empty, it will mean that something was parsed. Therefore, the parsed statement being a list (according to the \textbf{Parse [AST]}) is taken out and placed as an input value to the function \textbf{transform}. Why use \textbf{transform}? In order to evaluate a program, the statements need to be parsed separately. That's where the \textbf{transform} function comes in play by taking each parsed statement of the list to then evaluate it and use the recursive property that comes along with lists to continue the evaluation for the remaining parsed statements of the list. Let's have a look at implementation of \textbf{transform}:
     
     \begin{tcolorbox}
-    \begin{lstlisting}[language=Haskell] 
+    \begin{lstlisting}[language=Haskell]
+                                    .
+                                    .
+                                    .
     transform        :: [AST] -> StateMonad (Exceptions Variable) 
     transform []     = returnS (raise "success")
     transform (x:xs) = case x of 
@@ -1008,16 +1032,15 @@
                                          `bindS` errorOrTransform xs
     (DeclarationInt name value)    -> (putInStore (IntVar name value))
                                          `bindS` errorOrTransform xs
-    (Print name)                   -> (getFromStore name)
-                                         `bindS` errorOrTransform xs
-    (Get name)                     -> (getFromStore name)
-                                         `bindS` errorOrTransform xs
     (AssignmentVar leftvar rightvar) -> 
                                (evalAssignRightVar leftvar rightvar)
                                          `bindS` errorOrTransform xs
     (AssignmentOp leftvar leftopvar operator rightopvar) ->
-         (evalAssignRightCond leftvar leftopvar operator rightopvar) 
+         (evalAssignRightArith leftvar leftopvar operator rightopvar) 
                                          `bindS` errorOrTransform xs
+                                    .
+                                    .
+                                    .
     \end{lstlisting}
     \end{tcolorbox}
     
@@ -1056,11 +1079,6 @@
              \textbf{(Return (StringVar ``a" ``RERA")},\textcolor{green}{$\big[$StringVar ``a" `` \textbf{`}RERA\textbf{'} ", StringVar ``b" `` \textbf{`}RERA\textbf{'} "$\big]$}\textbf{)}
         \end{center}
         
-        \begin{center}
-            \textbf{ghci$>$} \textbf{evaluate} \textcolor{red}{``IntVar a = 2;a := b $<$ c;"} \textcolor{green}{ $\big[$IntVar ``b" 2, IntVar ``c" 4 $\big]$} \\
-             \textbf{(Raise \textcolor{red}{``no parse"}},\textcolor{green}{$\big[$IntVar ``b" 2, IntVar ``b" 4$\big]$}\textbf{)}
-        \end{center}
-        
     \noindent There is a public GitHub repository where all the above mentioned snippets of code can be viewed and these examples or more can be tested. The link to the repository is the following:
     \begin{center}
         \textbf{https://github.com/Rera93/Monads-for-Functional-Programming/blob/master/parsers2.lhs}
@@ -1068,12 +1086,15 @@
     
     \section{Conclusions}
     
-    
-    
-    
-    %The evaluator constructs for the integer or string declaration, printing, and getting were discussed in the previous section. Nevertheless, the simple and complicated assignment statements are using an undefined evaluator constructs (\textit{modifyStore} and \textit{modifyStore'}).  %      
+    During this research paper, comprehending the notion of a monadic construct proved to have a steep learning curve. Nevertheless, once the concept was properly grasped, it showed that the programmer can have a lot of power in structuring function programs and introducing side effect in the pure language. Additionally, the bind operators demonstrated how smoothly monads could be combined to one another to build up complex parsers and manipulate the elements of the store during evaluation. While working on the use case, I felt that monadic operations provided several approaches into constructing parsers and evaluators   understood that monads 
     
     \begin{thebibliography}{9}
+    \bibitem{history}
+    Hudak. B, Hughes. J, Jones. P. S, Walder. P. \textit{A History of Haskell:
+    Being Lazy With Class}. Yale University and University of Edinburgh.
+    \bibitem{history1}
+    Hudak. B, Jones. P. S, Walder. P. \textit{Report on the Programming Language Haskell: Version 1.1}. Technical Report, Yale University and Glasgow University, August 1991.
+    
     \bibitem{categorytheory} 
     M. D. Hill, Jonathan & Clarke, Keith. (1994). \textit{An Introduction to Category Theory, Category Theory Monads, and Their Relationship to Functional Programming}.
     \bibitem{essenceFP}
@@ -1086,6 +1107,7 @@
     Hutton, G. and Meijer, E. \textit{Monadic Parsing in Haskell}. University of Nottingham.
     \bibitem{bringMonadComprehension}
     Giorgidze. G, Grust. T, Schweinsberg. N, and Weijers. J. \textit{Bring Back Monad Comprehensions}. Wilhelm-Schickard-Institut fur Informatik and Eberhard Karls Universitat Tubingen.
+    
     \end{thebibliography}
     \end{document}
     
