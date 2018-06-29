@@ -85,16 +85,17 @@
 > isword :: Parse String
 > isword = isletter `bind` \letter -> repeat' isletter `bind` \letters -> result (letter : letters) 
 
-> data Operator = Multi | Div | Plus | Minus | Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual deriving (Show, Eq) 
+> data ArithmeticOp = Multi | Div | Plus | Minus deriving (Show, Eq)
+> data ConditionOp = Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual deriving (Show, Eq) 
 
-> data Condition = Condition String Operator String deriving (Show, Eq)
+> data Condition = Condition String ConditionOp String deriving (Show, Eq)
 
 > data AST = DeclarationInt String Int 
 >          | DeclarationString String String
 >          | Print String
 >          | Get String
 >          | AssignmentVar String String
->          | AssignmentOp String String Operator String 
+>          | AssignmentOp String String ArithmeticOp String 
 >          | WhileLoop Condition [AST] deriving (Show, Eq)
 
 > parse_print :: Parse AST 
@@ -125,43 +126,40 @@
 > parse_assignment_var :: Parse AST
 > parse_assignment_var  = isword `bind` \leftvar -> tokenize " := " `bind` \eq -> isword `bind` \rightvar -> result (AssignmentVar leftvar rightvar) 
 
-> is_arith_op :: Parse Operator 
+> is_arith_op :: Parse ArithmeticOp 
 > is_arith_op  =  is_multi_op +++ is_div_op +++ is_plus_op +++ is_minus_op 
 
-> is_operator :: Parse Operator
-> is_operator = is_arith_op +++ is_comp_op 
-
-> is_comp_op :: Parse Operator
+> is_comp_op :: Parse ConditionOp
 > is_comp_op = is_greaterthan_eq_op +++ is_greaterthan_op +++ is_lessthan_eq_op +++ is_lessthan_op +++ is_eq_op +++ is_not_eq_op 
 
-> is_multi_op :: Parse Operator
+> is_multi_op :: Parse ArithmeticOp
 > is_multi_op  = singleChar '*' `bind` \multi -> result Multi
 
-> is_div_op :: Parse Operator
+> is_div_op :: Parse ArithmeticOp
 > is_div_op = singleChar '/' `bind` \div -> result Div
 
-> is_plus_op :: Parse Operator
+> is_plus_op :: Parse ArithmeticOp
 > is_plus_op  = singleChar '+' `bind` \plus -> result Plus
 
-> is_minus_op :: Parse Operator
+> is_minus_op :: Parse ArithmeticOp
 > is_minus_op  = singleChar '-' `bind` \minus -> result Minus
 
-> is_greaterthan_op :: Parse Operator 
+> is_greaterthan_op :: Parse ConditionOp 
 > is_greaterthan_op  = singleChar '>' `bind` \greater -> result GreaterThan
 
-> is_greaterthan_eq_op :: Parse Operator 
+> is_greaterthan_eq_op :: Parse ConditionOp 
 > is_greaterthan_eq_op  = tokenize ">=" `bind` \eq -> result GreaterThanOrEqual
 
-> is_lessthan_op :: Parse Operator 
+> is_lessthan_op :: Parse ConditionOp 
 > is_lessthan_op  = singleChar '<' `bind` \less -> result LessThan
 
-> is_lessthan_eq_op :: Parse Operator 
+> is_lessthan_eq_op :: Parse ConditionOp 
 > is_lessthan_eq_op  =  tokenize "<=" `bind` \eq -> result LessThanOrEqual
 
-> is_eq_op :: Parse Operator
+> is_eq_op :: Parse ConditionOp
 > is_eq_op  = tokenize "==" `bind` \eq2 -> result Equal
 
-> is_not_eq_op :: Parse Operator
+> is_not_eq_op :: Parse ConditionOp
 > is_not_eq_op  = tokenize "!=" `bind` \eq -> result NotEqual
 
 > parse_assignment_op :: Parse AST
@@ -205,7 +203,20 @@
 >                      (AssignmentVar leftvar rightvar) -> (modifyStore leftvar rightvar) `bindS` errorOrTransform xs
 >                      (AssignmentOp leftvar leftopvar operator rightopvar) -> (modifyStore' leftvar leftopvar operator rightopvar) `bindS` errorOrTransform xs
  
- my_eval (WhileLoop condition [])                          = 
+ my_eval (WhileLoop (Condition left op right) [])           -> loop
+ my_eval (WhileLoop (condition left op right) (ast : asts)) -> 
+
+ evalCondOp :: String -> String -> ConditionOp -> StateMonad (Exceptions Bool)
+ evalCondOp left right op = verifyVarRelation left right `bindS` \decision -> if (decision /= (Raise "approve")) then returnS (decision) else calculateCond left op right `bindS` \loop -> if (loop == (Raise True)) then returnS (loop) else returnS (loop) 
+
+ calculateCond :: Variable -> ConditionOp -> Variable -> StateMonad (Exceptions Bool)
+ calculateCond a op b = case op of
+                          (Equal)    -> returnS (returnE ((getValue a) == b))
+                          (NotEqual) -> returnS (returnE (a /= b))
+                          (LessThan) -> returnS (returnE (a < b))
+                          (LessThanOrEqual) -> returnS (returnE (a <= b))
+                          (GreaterThan) -> returnS (returnE (a > b))
+                          (GreaterThanOrEqual) -> returnS (returnE (a >= b))
 
 > errorOrTransform :: [AST] -> Exceptions Variable -> StateMonad (Exceptions Variable)
 > errorOrTransform []      = \e -> returnS (e)
@@ -240,24 +251,18 @@
 > getVariable (Raise _) = StringVar "never" "never"
 > getVariable (Return v) = v 
 
-> evalOp            :: String -> Operator -> String -> StateMonad (Exceptions Variable)
+> evalOp            :: String -> ArithmeticOp -> String -> StateMonad (Exceptions Variable)
 > evalOp left op right = (verifyVarRelation left right) `bindS` \decision -> if (decision /= Raise "approve") then returnS (decision) else (getFromStore left) `bindS` \l -> if ((getVarType (getVariable l)) /= "Integer") then returnS (raise "cant do arithmetic on strings") else (getFromStore right) `bindS` \r -> (calculate (getVariable l) op (getVariable r))
 
-> calculate :: Variable -> Operator -> Variable -> StateMonad (Exceptions Variable)
+> calculate :: Variable -> ArithmeticOp -> Variable -> StateMonad (Exceptions Variable)
 > calculate a op b = case op of 
 >                      (Multi) -> returnS (returnE (IntVar "result" ((getIntValue a) * (getIntValue b))))
 >                      (Plus)  -> returnS (returnE (IntVar "result" ((getIntValue a) + (getIntValue b))))
 >                      (Minus) -> returnS (returnE (IntVar "result" ((getIntValue a) - (getIntValue b))))
->                      (GreaterThan) -> returnS (raise "no comparison")
->                      (GreaterThanOrEqual) -> returnS (raise "no comparison")
->                      (LessThan) -> returnS (raise "no comparison")
->                      (LessThanOrEqual) -> returnS (raise "no comparison")
->                      (Equal) -> returnS (raise "no comparison")
->                      (NotEqual) -> returnS (raise "no comparison")
 >                      (Div)   -> returnS (raise "no comparison")
 
 
-> modifyStore'                       :: String -> String -> Operator -> String -> StateMonad (Exceptions Variable)
+> modifyStore'                       :: String -> String -> ArithmeticOp -> String -> StateMonad (Exceptions Variable)
 > modifyStore' left leftop op rightop = (getFromStore left) `bindS` \leftVar -> case leftVar of (Raise _)  -> returnS (raise (left ++ " does not exist"))                                                                                 
 >                                                                                               (Return l) -> (evalOp leftop op rightop) `bindS` \rightVarOrExp -> case rightVarOrExp of (Raise e) -> returnS (Raise e)
 >                                                                                                                                                                                        (Return r) -> (removeFromStore l) `bindS` \_ -> (assign l r) `bindS` \newVal -> putInStore newVal
@@ -279,6 +284,11 @@
 
 > getIntValue :: Variable -> Int
 > getIntValue (IntVar _ val) = val 
+
+> getValue :: Variable -> a
+> getValue (StringVar _ val) = val
+> getValue (IntVar _ val) = val
+
 
 > assign :: Variable -> Variable -> StateMonad Variable 
 > assign (IntVar lname lval) (IntVar rname rval)       = returnS (IntVar lname rval)
